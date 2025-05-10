@@ -1,0 +1,8 @@
+/obj/Debug/*.o
+/obj/Release/*.o
+/.vscode/*.json
+/*.cbp
+/*.depend
+/*.layout
+/bin/Debug/*.exe
+/bin/Release/*.exe
