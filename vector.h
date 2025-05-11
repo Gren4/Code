@@ -4,7 +4,7 @@
 
 typedef struct vector
 {
-    size_t data_size;
+    const size_t data_size;
     size_t count;
     size_t size;
     void *data;

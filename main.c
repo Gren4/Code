@@ -3,7 +3,7 @@
 #include "util_funcs.h"
 #include <stdio.h>
 
-#define N 1
+#define N 10
 
 void vector_test(void);
 void unordered_map_test(void);
@@ -20,41 +20,62 @@ void unordered_map_test(void)
 {
     uint8_t a = 13;
 
-    unordered_map b = create_uo_map(string_key_size, sizeof(uint8_t));
+    unordered_map b1 = create_uo_map(string_key_size, sizeof(uint8_t));
 
-    set_uo_map(&b, "ara", &a);
+    set_uo_map(&b1, "ara", &a);
 
-    if (has_key_uo_map(&b, "ara"))
+    if (has_key_uo_map(&b1, "ara"))
     {
-        get_uo_map(&b, "ara", &a);
+        get_uo_map(&b1, "ara", &a);
         printf("Have %s key with value %d\n", "ara", a);
     }
     else
     {
         printf("No %s key\n", "ara");
     }
-    if (has_key_uo_map(&b, "bruh"))
+    if (has_key_uo_map(&b1, "bruh"))
     {
-        get_uo_map(&b, "bruh", &a);
-        printf("%d\n", a);
+        get_uo_map(&b1, "bruh", &a);
+        printf("Have %s key with value %d\n", "bruh", a);
     }
     else
     {
         printf("No %s key\n", "bruh");
     }
-    delete_uo_map(&b, "ara", nullptr);
+    delete_uo_map(&b1, "ara", nullptr);
 
-    if (has_key_uo_map(&b, "ara"))
+    if (has_key_uo_map(&b1, "ara"))
     {
-        get_uo_map(&b, "ara", &a);
-        printf("%d\n", a);
+        get_uo_map(&b1, "ara", &a);
+        printf("Have %s key with value %d\n", "ara", a);
     }
     else
     {
         printf("No %s key\n", "ara");
     }
 
-    free_uo_map(&b);
+    free_uo_map(&b1);
+
+    unordered_map b2 = create_uo_map(sizeof(size_t), sizeof(uint8_t));
+
+    size_t i = 0;
+    a = 2;
+    for (i = 0; i < N; i++, a++)
+    {
+        set_uo_map(&b2, &i, &a);
+    }
+    printf("Added %d elements to uo map\n", N);
+    i = N >> 1;
+    if (has_key_uo_map(&b2, &i))
+    {
+        get_uo_map(&b2, &i, &a);
+        printf("Have %llu key with value %d\n", i, a);
+    }
+    else
+    {
+        printf("No %llu key\n", i);
+    }
+    free_uo_map(&b2);
 
     return;
 }
@@ -84,7 +105,7 @@ void vector_test(void)
 
     while(pop_vector(&b, &a))
     {
-        printf("%05.2f\n", a);
+//        printf("%05.2f\n", a);
     }
 
     free_vector(&b);

@@ -18,7 +18,6 @@ void free_vector(vector *const v)
 {
     if (v->data != nullptr)
         free(v->data);
-    v->data_size = 0;
     v->count = 0;
     v->size = 0;
     v->data = nullptr;

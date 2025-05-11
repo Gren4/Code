@@ -21,7 +21,7 @@ size_t next_power_of_2(size_t num)
 
 size_t djb2(uint8_t *key, size_t key_len)
 {
-    if ((ssize_t)key_len >= 0)
+    if (key_len > 0)
     {
         size_t hash = 5381;
         for (; key_len--;)
@@ -44,7 +44,7 @@ size_t djb2(uint8_t *key, size_t key_len)
 
 size_t sdbm(uint8_t *key, size_t key_len)
 {
-    if ((ssize_t)key_len >= 0)
+    if (key_len > 0)
     {
         size_t hash = 0;
         for (; key_len--;)
