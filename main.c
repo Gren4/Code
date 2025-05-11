@@ -3,7 +3,7 @@
 #include "util_funcs.h"
 #include <stdio.h>
 
-#define N 10
+#define N 5000000
 
 void vector_test(void);
 void unordered_map_test(void);
@@ -20,7 +20,7 @@ void unordered_map_test(void)
 {
     uint8_t a = 13;
 
-    unordered_map b1 = create_uo_map(string_key_size, sizeof(uint8_t));
+    unordered_map b1 = create_uo_map(string_key_size, sizeof(uint8_t), 0);
 
     set_uo_map(&b1, "ara", &a);
 
@@ -56,7 +56,7 @@ void unordered_map_test(void)
 
     free_uo_map(&b1);
 
-    unordered_map b2 = create_uo_map(sizeof(size_t), sizeof(uint8_t));
+    unordered_map b2 = create_uo_map(sizeof(size_t), sizeof(uint8_t), N);
 
     size_t i = 0;
     a = 2;

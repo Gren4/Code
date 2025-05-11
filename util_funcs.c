@@ -6,6 +6,10 @@ size_t next_power_of_2(size_t num)
     {
         return 2;
     }
+    else if (num % 2 == 0)
+    {
+        return num;
+    }
     else
     {
         --num;
@@ -19,48 +23,56 @@ size_t next_power_of_2(size_t num)
     }
 }
 
-size_t djb2(uint8_t *key, size_t key_len)
+size_t djb2(const uint8_t *key, size_t key_len)
 {
-    if (key_len > 0)
+    size_t hash = 5381;
+    for (; key_len--;)
     {
-        size_t hash = 5381;
-        for (; key_len--;)
-        {
-            hash = ((hash << 5) + hash) + (size_t)(*key++);
-        }
-        return hash;
+        hash = ((hash << 5) + hash) + (size_t)(*key++);
     }
-    else
-    {
-        size_t hash = 5381;
-        size_t c;
-        while ((c = *key++))
-        {
-            hash = ((hash << 5) + hash) + c;
-        }
-        return hash;
-    }
+    return hash;
 }
 
-size_t sdbm(uint8_t *key, size_t key_len)
+size_t djb2_str(const uint8_t *key, size_t key_len)
 {
-    if (key_len > 0)
+    size_t hash = 5381;
+    size_t c;
+    while ((c = *key++))
     {
-        size_t hash = 0;
-        for (; key_len--;)
-        {
-            hash = (size_t)(*key++) + (hash << 6) + (hash << 16) - hash;
-        }
-        return hash;
+        hash = ((hash << 5) + hash) + c;
     }
-    else
+    return hash;
+}
+
+size_t simple_hash(const uint8_t *key, size_t key_len)
+{
+    size_t i = 0;
+    size_t offset = 0;
+    size_t hash = 0;
+    for (; i < key_len; i++, offset += 8)
     {
-        size_t hash = 0;
-        size_t c;
-        while ((c = *key++))
-        {
-            hash = c + (hash << 6) + (hash << 16) - hash;
-        }
-        return hash;
+        hash |= (size_t)((*key++) << offset);
     }
+    return hash;
+}
+
+size_t sdbm(const uint8_t *key, size_t key_len)
+{
+    size_t hash = 0;
+    for (; key_len--;)
+    {
+        hash = (size_t)(*key++) + (hash << 6) + (hash << 16) - hash;
+    }
+    return hash;
+}
+
+size_t sdbm_str(const uint8_t *key, size_t key_len)
+{
+    size_t hash = 0;
+    size_t c;
+    while ((c = *key++))
+    {
+        hash = c + (hash << 6) + (hash << 16) - hash;
+    }
+    return hash;
 }
