@@ -3,15 +3,23 @@
 #include <string.h>
 #include "util_funcs.h"
 
-vector create_vector(const size_t size, const size_t data_size)
+typedef struct vector
+{
+    const size_t data_size;
+    size_t count;
+    size_t size;
+    void *data;
+} vector;
+
+vector *create_vector(const size_t size, const size_t data_size)
 {
     size_t mul_of_2_size = next_power_of_2(size);
-    vector new_vector = {
+    vector new_v = {
         .data_size = data_size,
         .count = 0,
         .size = mul_of_2_size,
         .data = (void *)calloc(mul_of_2_size, data_size)};
-    return new_vector;
+    return (vector *)memcpy(malloc(sizeof(vector)), &new_v, sizeof(vector));
 }
 
 void free_vector(vector *const v)
@@ -71,7 +79,7 @@ int pop_vector(vector *const v, void *const val)
     return shrink_vector(v);
 }
 
-int insert_vector(vector *const v, const size_t index, void *const val)
+int insert_vector(vector *const v, const size_t index, const void *const val)
 {
     if (index > v->count)
         return 0;
