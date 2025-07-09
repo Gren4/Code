@@ -1,8 +1,9 @@
 #include "unordered_map.h"
+#include "util_funcs.h"
 #include <stdlib.h>
 #include <string.h>
-#include "util_funcs.h"
-#include "hash_funcs.h"
+
+#define UO_MAP_MIN_SIZE 16
 
 typedef enum key_status
 {
@@ -13,144 +14,94 @@ typedef enum key_status
 
 typedef struct unordered_map
 {
-    const size_t key_size;
-    const size_t data_size;
     size_t count;
     size_t size;
     key_status *status;
-    void *keys;
-    void *data;
-    size_t (*hash_function)(const uint8_t *key, size_t key_len);
+    char *keys;
+    char *data;
+    const type_func *keys_type;
+    const type_func *data_type;
 } unordered_map;
 
-static inline key_status *at_status(const unordered_map *const m, const size_t index)
+unordered_map *create_uo_map(const size_t size, const type_func *keys_type, const type_func *data_type)
 {
-    return m->status + index;
-}
-
-static inline void *at_key(const unordered_map *const m, const size_t index)
-{
-    if (m->key_size == string_key_size)
-        return m->keys + index * sizeof(char *);
-    else
-        return m->keys + index * m->key_size;
-}
-
-static inline void *at_data(const unordered_map *const m, const size_t index)
-{
-    return m->data + index * m->data_size;
-}
-
-static inline key_status *at_status_p(key_status *const status, const size_t index)
-{
-    return status + index;
-}
-
-static inline void *at_key_p(void *const keys, const size_t index, const size_t key_size)
-{
-    if (key_size == string_key_size)
-        return keys + index * sizeof(char *);
-    else
-        return keys + index * key_size;
-}
-
-static inline void *at_data_p(void *const data, const size_t index, const size_t data_size)
-{
-    return data + index * data_size;
-}
-
-static inline int key_cmp(const void *const a, const void *const b, const size_t size)
-{
-    if (size == string_key_size)
-        return strcmp(*(char **)a, b);
-    else
-        return memcmp(a, b, size);
-}
-
-static inline void key_cpy(void *const a, const void *const b, const size_t size)
-{
-    if (size == string_key_size)
-    {
-        char *string = strcpy(calloc(strlen(b) + 1, sizeof(char)), b);
-        memcpy(a, &string, sizeof(char *));
-    }
-    else
-        memcpy(a, b, size);
-    return;
-}
-
-unordered_map *create_uo_map(const size_t key_size, const size_t data_size, const size_t size)
-{
-    size_t new_size = size < 4 ? 4 : next_power_of_2(size);
+    size_t new_size = size < UO_MAP_MIN_SIZE ? UO_MAP_MIN_SIZE : next_power_of_2(size);
     unordered_map new_m = {
-        .key_size = key_size,
-        .data_size = data_size,
         .count = 0,
         .size = new_size,
         .status = (key_status *)calloc(new_size, sizeof(key_status)),
-        .keys = key_size != string_key_size ? (void *)calloc(new_size, key_size) : (void *)calloc(new_size, sizeof(char *)),
-        .data = (void *)calloc(new_size, data_size),
-        .hash_function = key_size != string_key_size ? (key_size <= sizeof(size_t) ? simple_hash : sdbm) : sdbm_str};
+        .keys = (char *)calloc(new_size, keys_type->t_size),
+        .data = (char *)calloc(new_size, data_type->t_size),
+        .keys_type = keys_type,
+        .data_type = data_type};
     return (unordered_map *)memcpy(malloc(sizeof(unordered_map)), &new_m, sizeof(unordered_map));
 }
 
 void free_uo_map(unordered_map *const m)
 {
-    if (m->status != nullptr)
-        free(m->status);
-    if (m->keys != nullptr)
+    if (m->keys != NULL)
     {
-        if (m->key_size == string_key_size)
+        if (m->keys_type->t_free != NULL && m->count > 0)
         {
             size_t i = 0;
             for (; i < m->size; i++)
             {
-                if (*at_status(m, i) == USED)
-                {
-                    free(*(char **)at_key(m, i));
-                }
+                if (m->status[i] == USED)
+                    m->keys_type->t_free(m->keys_type->t_at(m->keys, i));
             }
         }
         free(m->keys);
     }
-    if (m->data != nullptr)
+    if (m->data != NULL)
+    {
+        if (m->data_type->t_free != NULL && m->count > 0)
+        {
+            size_t i = 0;
+            for (; i < m->size; i++)
+            {
+                if (m->status[i] == USED)
+                    m->data_type->t_free(m->data_type->t_at(m->data, i));
+            }
+        }
         free(m->data);
+    }
+    if (m->status != NULL)
+        free(m->status);
     m->count = 0;
     m->size = 0;
-    m->status = nullptr;
-    m->keys = nullptr;
-    m->data = nullptr;
+    m->status = NULL;
+    m->keys = NULL;
+    m->data = NULL;
     return;
 }
 
-static void expand_uo_map(unordered_map *const m)
+static int expand_uo_map(unordered_map *const m)
 {
     if (++m->count < m->size)
-        return;
+        return 1;
     size_t new_size = next_power_of_2(m->size << 1);
     key_status *new_status = (key_status *)calloc(new_size, sizeof(key_status));
-    void *new_keys = m->key_size != string_key_size ? (void *)calloc(new_size, m->key_size) : (void *)calloc(new_size, sizeof(char *));
-    void *new_data = (void *)calloc(new_size, m->data_size);
+    char *new_keys = (char *)calloc(new_size, m->keys_type->t_size);
+    char *new_data = (char *)calloc(new_size, m->data_type->t_size);
+    if (new_status == NULL || new_keys == NULL || new_data == NULL)
+        return 0;
     size_t i = 0;
     for (; i < m->size; i++)
     {
-        if (*at_status(m, i) != USED)
+        if (m->status[i] != USED)
             continue;
-        void *key = at_key(m, i);
-        void *data = at_data(m, i);
-        size_t index = m->hash_function((uint8_t *)key, m->key_size) % new_size;
+        char *key = m->keys_type->t_at(m->keys, i);
+        char *data = m->data_type->t_at(m->data, i);
+        size_t index = m->keys_type->t_hash(key) % new_size;
         size_t offset = 1;
         for (;;)
         {
-            key_status *status = at_status_p(new_status, index);
+            key_status *status = new_status + index;
             if (*status != USED)
             {
                 *status = USED;
-                if (m->key_size == string_key_size)
-                    memcpy(at_key_p(new_keys, index, m->key_size), key, sizeof(char *));
-                else
-                    memcpy(at_key_p(new_keys, index, m->key_size), key, m->key_size);
-                memcpy(at_data_p(new_data, index, m->data_size), data, m->data_size);
+                m->keys_type->t_move(m->keys_type->t_at(new_keys, index), key);
+                m->data_type->t_move(m->data_type->t_at(new_data, index), data);
                 break;
             }
             else
@@ -166,39 +117,38 @@ static void expand_uo_map(unordered_map *const m)
     m->keys = new_keys;
     m->data = new_data;
     m->size = new_size;
-    return;
+    return 1;
 }
 
-static void shrink_uo_map(unordered_map *const m)
+static int shrink_uo_map(unordered_map *const m)
 {
     if (--m->count >= m->size >> 3)
-        return;
+        return 1;
     size_t new_size = next_power_of_2(m->size >> 1);
-    if (new_size <= 4)
-        return;
+    if (new_size <= UO_MAP_MIN_SIZE)
+        return 1;
     key_status *new_status = (key_status *)calloc(new_size, sizeof(key_status));
-    void *new_keys = m->key_size != string_key_size ? (void *)calloc(new_size, m->key_size) : (void *)calloc(new_size, sizeof(char *));
-    void *new_data = (void *)calloc(new_size, m->data_size);
+    char *new_keys = (char *)calloc(new_size, m->keys_type->t_size);
+    char *new_data = (char *)calloc(new_size, m->data_type->t_size);
+    if (new_status == NULL || new_keys == NULL || new_data == NULL)
+        return 0;
     size_t i = 0;
     for (; i < m->size; i++)
     {
-        if (*at_status(m, i) != USED)
+        if (m->status[i] != USED)
             continue;
-        void *key = at_key(m, i);
-        void *data = at_data(m, i);
-        size_t index = m->hash_function((uint8_t *)key, m->key_size) % new_size;
+        char *key = m->keys_type->t_at(m->keys, i);
+        char *data = m->data_type->t_at(m->data, i);
+        size_t index = m->keys_type->t_hash(key) % new_size;
         size_t offset = 1;
         for (;;)
         {
-            key_status *status = at_status_p(new_status, index);
+            key_status *status = new_status + index;
             if (*status != USED)
             {
                 *status = USED;
-                if (m->key_size == string_key_size)
-                    memcpy(at_key_p(new_keys, index, m->key_size), key, sizeof(char *));
-                else
-                    memcpy(at_key_p(new_keys, index, m->key_size), key, m->key_size);
-                memcpy(at_data_p(new_data, index, m->data_size), data, m->data_size);
+                m->keys_type->t_move(m->keys_type->t_at(new_keys, index), key);
+                m->data_type->t_move(m->data_type->t_at(new_data, index), data);
                 break;
             }
             else
@@ -214,20 +164,20 @@ static void shrink_uo_map(unordered_map *const m)
     m->keys = new_keys;
     m->data = new_data;
     m->size = new_size;
-    return;
+    return 1;
 }
 
 int set_uo_map(unordered_map *const m, const void *const key, const void *const val)
 {
-    size_t index = m->hash_function((uint8_t *)key, m->key_size) % m->size;
+    size_t index = m->keys_type->t_hash(key) % m->size;
     size_t i = index;
     size_t offset = 1;
     for (;;)
     {
-        key_status *status = at_status(m, i);
-        if (*status == USED && key_cmp(at_key(m, i), key, m->key_size) == 0)
+        key_status *status = m->status + i;
+        if (*status == USED && m->keys_type->t_cmp(m->keys_type->t_at(m->keys, i), key) == 0)
         {
-            memcpy(at_data(m, i), val, m->data_size);
+            m->data_type->t_cpy(m->data_type->t_at(m->data, i), val);
             return 1;
         }
         else
@@ -235,10 +185,9 @@ int set_uo_map(unordered_map *const m, const void *const key, const void *const 
             if (*status != USED)
             {
                 *status = USED;
-                key_cpy(at_key(m, i), key, m->key_size);
-                memcpy(at_data(m, i), val, m->data_size);
-                expand_uo_map(m);
-                return 1;
+                m->keys_type->t_cpy(m->keys_type->t_at(m->keys, i), key);
+                m->data_type->t_cpy(m->data_type->t_at(m->data, i), val);
+                return expand_uo_map(m);
             }
             else
             {
@@ -254,15 +203,15 @@ int get_uo_map(const unordered_map *const m, const void *const key, void *const 
 {
     if (m->count <= 0)
         return 0;
-    size_t index = m->hash_function((uint8_t *)key, m->key_size) % m->size;
+    size_t index = m->keys_type->t_hash(key) % m->size;
     size_t i = index;
     size_t offset = 1;
     for (;;)
     {
-        key_status *status = at_status(m, i);
-        if (*status == USED && key_cmp(at_key(m, i), key, m->key_size) == 0)
+        key_status *status = m->status + i;
+        if (*status == USED && m->keys_type->t_cmp(m->keys_type->t_at(m->keys, i), key) == 0)
         {
-            memcpy(val, at_data(m, i), m->data_size);
+            m->data_type->t_cpy(val, m->data_type->t_at(m->data, i));
             return 1;
         }
         else
@@ -278,21 +227,22 @@ int delete_uo_map(unordered_map *const m, const void *const key, void *const val
 {
     if (m->count <= 0)
         return 0;
-    size_t index = m->hash_function((uint8_t *)key, m->key_size) % m->size;
+    size_t index = m->keys_type->t_hash(key) % m->size;
     size_t i = index;
     size_t offset = 1;
     for (;;)
     {
-        key_status *status = at_status(m, i);
-        if (*status == USED && key_cmp(at_key(m, i), key, m->key_size) == 0)
+        key_status *status = m->status + i;
+        if (*status == USED && m->keys_type->t_cmp(m->keys_type->t_at(m->keys, i), key) == 0)
         {
-            if (val != nullptr)
-                memcpy(val, at_data(m, i), m->data_size);
+            if (val != NULL)
+                m->data_type->t_cpy(val, m->data_type->t_at(m->data, i));
             *status = DELETED;
-            if (m->key_size == string_key_size)
-                free(*(char **)at_key(m, i));
-            shrink_uo_map(m);
-            return 1;
+            if (m->keys_type->t_free != NULL)
+                m->keys_type->t_free(m->keys_type->t_at(m->keys, i));
+            if (m->data_type->t_free != NULL)
+                m->data_type->t_free(m->data_type->t_at(m->data, i));
+            return shrink_uo_map(m);
         }
         else
         {
@@ -305,20 +255,16 @@ int delete_uo_map(unordered_map *const m, const void *const key, void *const val
 
 int has_key_uo_map(const unordered_map *const m, const void *const key)
 {
-    size_t index = m->hash_function((uint8_t *)key, m->key_size) % m->size;
+    size_t index = m->keys_type->t_hash(key) % m->size;
     size_t i = index;
     size_t offset = 1;
     for (;;)
     {
-        key_status *status = at_status(m, i);
-        if (*status == USED && key_cmp(at_key(m, i), key, m->key_size) == 0)
-        {
+        key_status *status = m->status + i;
+        if (*status == USED && m->keys_type->t_cmp(m->keys_type->t_at(m->keys, i), key) == 0)
             return 1;
-        }
         else if (*status == EMPTY)
-        {
             return 0;
-        }
         else
         {
             i = (i + offset++) % m->size;

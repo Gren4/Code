@@ -1,8 +1,7 @@
 #include "map.h"
-
+#include "util_funcs.h"
 #include <stdlib.h>
 #include <string.h>
-#include "util_funcs.h"
 
 typedef enum node_color
 {
@@ -64,8 +63,8 @@ map_node *create_node(const map *const m, map_node *const parent, const node_col
     map_node *new_n = (map_node *)ptr;
     new_n->color = color;
     new_n->parent = parent;
-    new_n->left = nullptr;
-    new_n->right = nullptr;
+    new_n->left = NULL;
+    new_n->right = NULL;
     ptr += sizeof(map_node);
     memcpy(ptr, val, m->data_size);
     ptr += m->data_size;
@@ -80,41 +79,41 @@ map *create_map(const size_t key_size, const size_t data_size)
         .key_padding = (data_size + real_key_size) % real_key_size == 0 ? 0 : real_key_size - ((data_size + real_key_size) % real_key_size),
         .key_size = key_size,
         .data_size = data_size,
-        .root = nullptr};
+        .root = NULL};
     return (map *)memcpy(malloc(sizeof(map)), &new_m, sizeof(map));
 }
 
 void free_map(map *const m)
 {
-    if (m->root != nullptr)
+    if (m->root != NULL)
     {
         map_node *cur_node = m->root;
-        for (; cur_node != nullptr;)
+        for (; cur_node != NULL;)
         {
-            if (cur_node->left == nullptr && cur_node->right == nullptr)
+            if (cur_node->left == NULL && cur_node->right == NULL)
             {
-                if (cur_node->parent != nullptr)
+                if (cur_node->parent != NULL)
                 {
                     if (cur_node->parent->right == cur_node)
                     {
                         cur_node = cur_node->parent;
                         free(cur_node->right);
-                        cur_node->right = nullptr;
+                        cur_node->right = NULL;
                     }
                     else if (cur_node->parent->left == cur_node)
                     {
                         cur_node = cur_node->parent;
                         free(cur_node->left);
-                        cur_node->left = nullptr;
+                        cur_node->left = NULL;
                     }
                 }
                 else
                 {
                     free(cur_node);
-                    cur_node = nullptr;
+                    cur_node = NULL;
                 }
             }
-            else if (cur_node->right != nullptr)
+            else if (cur_node->right != NULL)
             {
                 cur_node = cur_node->right;
             }
@@ -124,7 +123,7 @@ void free_map(map *const m)
             }
         }
     }
-    m->root = nullptr;
+    m->root = NULL;
     return;
 }
 
@@ -132,7 +131,7 @@ static void rotate_left(map_node *const node)
 {
     map_node *pivot = node->right;
     pivot->parent = node->parent;
-    if (node->parent != nullptr)
+    if (node->parent != NULL)
     {
         if (node->parent->left == node)
             node->parent->left = pivot;
@@ -140,7 +139,7 @@ static void rotate_left(map_node *const node)
             node->parent->right = pivot;
     }
     node->right = pivot->left;
-    if (pivot->left != nullptr)
+    if (pivot->left != NULL)
         pivot->left->parent = node;
     node->parent = pivot;
     pivot->left = node;
@@ -151,7 +150,7 @@ static void rotate_right(map_node *const node)
 {
     map_node *pivot = node->left;
     pivot->parent = node->parent;
-    if (node->parent != nullptr)
+    if (node->parent != NULL)
     {
         if (node->parent->left == node)
             node->parent->left = pivot;
@@ -159,7 +158,7 @@ static void rotate_right(map_node *const node)
             node->parent->right = pivot;
     }
     node->left = pivot->right;
-    if (pivot->right != nullptr)
+    if (pivot->right != NULL)
         pivot->right->parent = node;
     node->parent = pivot;
     pivot->right = node;
@@ -168,17 +167,17 @@ static void rotate_right(map_node *const node)
 
 static map_node *get_grandparent(const map_node *const node)
 {
-    if (node != nullptr && node->parent != nullptr)
+    if (node != NULL && node->parent != NULL)
         return node->parent->parent;
     else
-        return nullptr;
+        return NULL;
 }
 
 static map_node *get_uncle(const map_node *const node)
 {
     map_node *g = get_grandparent(node);
-    if (g == nullptr)
-        return nullptr;
+    if (g == NULL)
+        return NULL;
     if (node->parent == g->left)
         return g->right;
     else
@@ -187,8 +186,8 @@ static map_node *get_uncle(const map_node *const node)
 
 static map_node *get_sibling(const map_node *const node)
 {
-    if (node->parent == nullptr)
-        return nullptr;
+    if (node->parent == NULL)
+        return NULL;
     if (node == node->parent->left)
         return node->parent->right;
     else
@@ -199,7 +198,7 @@ static void insert_case(map_node *node)
 {
     for (;;)
     {
-        if (node->parent == nullptr)
+        if (node->parent == NULL)
         {
             node->color = BLACK;
             return;
@@ -211,7 +210,7 @@ static void insert_case(map_node *node)
             else
             {
                 map_node *u = get_uncle(node);
-                if ((u != nullptr) && (u->color == RED))
+                if ((u != NULL) && (u->color == RED))
                 {
                     node->parent->color = BLACK;
                     u->color = BLACK;
@@ -250,9 +249,9 @@ static void insert_case(map_node *node)
 
 int set_map(map *const m, const void *const key, const void *const val)
 {
-    if (m->root == nullptr)
+    if (m->root == NULL)
     {
-        m->root = create_node(m, nullptr, BLACK, key, val);
+        m->root = create_node(m, NULL, BLACK, key, val);
         return 1;
     }
     else
@@ -270,7 +269,7 @@ int set_map(map *const m, const void *const key, const void *const val)
             {
                 if (key_cmp_res > 0)
                 {
-                    if (cur_node->left != nullptr)
+                    if (cur_node->left != NULL)
                         cur_node = cur_node->left;
                     else
                     {
@@ -282,7 +281,7 @@ int set_map(map *const m, const void *const key, const void *const val)
                 }
                 else
                 {
-                    if (cur_node->right != nullptr)
+                    if (cur_node->right != NULL)
                         cur_node = cur_node->right;
                     else
                     {
@@ -309,7 +308,7 @@ static void replace_node(map_node *const node, map_node *const child)
 
 static void delete_case(map_node *const node)
 {
-    map_node *child = node->right != nullptr ? node->left : node->right;
+    map_node *child = node->right != NULL ? node->left : node->right;
     replace_node(node, child);
     if (node->color == BLACK)
     {
@@ -323,7 +322,7 @@ static void delete_case(map_node *const node)
         {
             for (;;)
             {
-                if (child->parent != nullptr)
+                if (child->parent != NULL)
                 {
                     map_node *s = get_sibling(child);
                     if (s->color == RED)
@@ -400,7 +399,7 @@ static void delete_case(map_node *const node)
 
 int delete_map(map *const m, const void *const key, void *const val)
 {
-    if (m->root == nullptr)
+    if (m->root == NULL)
     {
         return 0;
     }
@@ -412,7 +411,7 @@ int delete_map(map *const m, const void *const key, void *const val)
             int key_cmp_res = key_cmp(at_key(m, (void *)cur_node), key, m->key_size);
             if (key_cmp_res == 0)
             {
-                if (val != nullptr)
+                if (val != NULL)
                     memcpy(val, at_data(m, (void *)cur_node), m->data_size);
                 delete_case(cur_node);
                 return 1;
@@ -421,7 +420,7 @@ int delete_map(map *const m, const void *const key, void *const val)
             {
                 if (key_cmp_res > 0)
                 {
-                    if (cur_node->left != nullptr)
+                    if (cur_node->left != NULL)
                         cur_node = cur_node->left;
                     else
                     {
@@ -430,7 +429,7 @@ int delete_map(map *const m, const void *const key, void *const val)
                 }
                 else
                 {
-                    if (cur_node->right != nullptr)
+                    if (cur_node->right != NULL)
                         cur_node = cur_node->right;
                     else
                     {

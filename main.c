@@ -2,9 +2,12 @@
 #include "map.h"
 #include "unordered_map.h"
 #include "util_funcs.h"
+#include "bit_types.h"
+#include "string_type.h"
 #include <stdio.h>
+#include <stdlib.h>
 
-#define N 50
+#define N 5
 
 void vector_test(void);
 void map_test(void);
@@ -12,11 +15,12 @@ void unordered_map_test(void);
 
 int main(void)
 {
-    struct {uint8_t a; uint32_t b;} par;
-
-//    map_test();
-     unordered_map_test();
-     vector_test();
+    //    float ad = 1422;
+    //    bfloat r = (bfloat)ad;
+    //    printf("%f\n", r.value);
+    //    map_test();
+    unordered_map_test();
+    vector_test();
 
     return 1;
 }
@@ -24,8 +28,7 @@ int main(void)
 void map_test(void)
 {
     map *b = create_map(sizeof(uint8_t), sizeof(uint8_t));
-    uint8_t key = 3;
-    uint8_t val = 1;
+    uint8_t key = 3, val = 1;
     set_map(b, &key, &val);
     key = 3;
     val = 2;
@@ -53,43 +56,46 @@ void unordered_map_test(void)
 {
     uint8_t a = 13;
 
-    unordered_map *b1 = create_uo_map(string_key_size, sizeof(uint8_t), 0);
+    unordered_map *b1 = create_uo_map(0, f_string, f_uint8_t);
+    string ara = create_string("ara");
+    string bruh = create_string("bruh");
+    set_uo_map(b1, &ara, &a);
 
-    set_uo_map(b1, "ara", &a);
-
-    if (has_key_uo_map(b1, "ara"))
+    if (has_key_uo_map(b1, &ara))
     {
-        get_uo_map(b1, "ara", &a);
-        printf("Have %s key with value %d\n", "ara", a);
+        get_uo_map(b1, &ara, &a);
+        printf("Have %s key with value %d\n", ara.data, a);
     }
     else
     {
-        printf("No %s key\n", "ara");
+        printf("No %s key\n", ara.data);
     }
-    if (has_key_uo_map(b1, "bruh"))
+    if (has_key_uo_map(b1, &bruh))
     {
-        get_uo_map(b1, "bruh", &a);
-        printf("Have %s key with value %d\n", "bruh", a);
+        get_uo_map(b1, &bruh, &a);
+        printf("Have %s key with value %d\n", bruh.data, a);
     }
     else
     {
-        printf("No %s key\n", "bruh");
+        printf("No %s key\n", bruh.data);
     }
-    delete_uo_map(b1, "ara", nullptr);
+    delete_uo_map(b1, &ara, NULL);
 
-    if (has_key_uo_map(b1, "ara"))
+    if (has_key_uo_map(b1, &ara))
     {
-        get_uo_map(b1, "ara", &a);
-        printf("Have %s key with value %d\n", "ara", a);
+        get_uo_map(b1, &ara, &a);
+        printf("Have %s key with value %d\n", ara.data, a);
     }
     else
     {
-        printf("No %s key\n", "ara");
+        printf("No %s key\n", ara.data);
     }
 
     free_uo_map(b1);
+    free_string(&ara);
+    free_string(&bruh);
 
-    unordered_map *b2 = create_uo_map(sizeof(size_t), sizeof(uint8_t), N);
+    unordered_map *b2 = create_uo_map(N, f_size_t, f_uint8_t);
 
     size_t i = 0;
     a = 2;
@@ -143,7 +149,7 @@ void vector_test(void)
 {
     size_t i = 0;
     double a = 0.0;
-    vector *b = create_vector(0, sizeof(double));
+    vector *b = create_vector(0, f_double);
 
     for (i = 0; i < N; i++)
     {
@@ -153,16 +159,13 @@ void vector_test(void)
 
     a = 99.0;
     insert_vector(b, 5, (void *)&a);
-    delete_vector(b, 5, nullptr);
+    delete_vector(b, 5, NULL);
 
     a = *((double *)at_vector(b, 2));
 
     invert_vector(b);
 
-    a = 2.0;
-    printf("2.0 is at index %llu\n", find_vector(b, &a));
-
-    while(pop_vector(b, &a))
+    while (pop_vector(b, &a))
     {
         printf("%05.2f\n", a);
     }
