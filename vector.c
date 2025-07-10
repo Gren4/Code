@@ -11,7 +11,7 @@ typedef struct vector
     char *data;
 } vector;
 
-vector *create_vector(const size_t size, const type_func *type)
+vector *create_vector(const size_t size, const type_func *const type)
 {
     size_t mul_of_2_size = next_power_of_2(size);
     vector new_v = {
@@ -19,6 +19,8 @@ vector *create_vector(const size_t size, const type_func *type)
         .size = mul_of_2_size,
         .type = type,
         .data = (char *)calloc(mul_of_2_size, type->t_size)};
+    if (new_v.data == NULL)
+        return NULL;
     return (vector *)memcpy(malloc(sizeof(vector)), &new_v, sizeof(vector));
 }
 
@@ -28,7 +30,7 @@ void free_vector(vector *const v)
     {
         if (v->type->t_free != NULL && v->count > 0)
         {
-            size_t i = 0;
+            ssize_t i = 0;
             for (; i < v->count; i++)
             {
                 v->type->t_free(v->type->t_at(v->data, i));
@@ -47,10 +49,14 @@ int resize_vector(vector *const v, const size_t new_size)
     if (v->size == new_size)
         return 1;
     size_t mul_of_2_size = next_power_of_2(new_size);
-    v->data = realloc(v->data, mul_of_2_size * v->type->t_size);
+    char *new_data = realloc(v->data, mul_of_2_size * v->type->t_size);
+    if (new_data == NULL)
+        return 0;
+    memset(new_data + v->size * v->type->t_size, 0, (mul_of_2_size - v->size) * v->type->t_size);
+    v->data = new_data;
     v->size = mul_of_2_size;
     v->count = new_size;
-    return v->data != NULL;
+    return 1;
 }
 
 static inline int expand_vector(vector *const v)
@@ -58,9 +64,13 @@ static inline int expand_vector(vector *const v)
     if (++v->count <= v->size)
         return 1;
     size_t mul_of_2_size = next_power_of_2(v->count);
-    v->data = realloc(v->data, mul_of_2_size * v->type->t_size);
+    char *new_data = realloc(v->data, mul_of_2_size * v->type->t_size);
+    if (new_data == NULL)
+        return 0;
+    memset(new_data + v->size * v->type->t_size, 0, (mul_of_2_size - v->size) * v->type->t_size);
+    v->data = new_data;
     v->size = mul_of_2_size;
-    return v->data != NULL;
+    return 1;
 }
 
 static inline int shrink_vector(vector *const v)
@@ -70,7 +80,10 @@ static inline int shrink_vector(vector *const v)
     if (--v->count >= v->size >> 3)
         return 1;
     size_t mul_of_2_size = next_power_of_2(v->count);
-    v->data = realloc(v->data, mul_of_2_size * v->type->t_size);
+    char *new_data = realloc(v->data, mul_of_2_size * v->type->t_size);
+    if (new_data == NULL)
+        return 0;
+    v->data = new_data;
     v->size = mul_of_2_size;
     return 1;
 }
@@ -135,22 +148,14 @@ int swap_vector(vector *const v, const size_t index_1, const size_t index_2)
 {
     if (index_1 >= v->count && index_2 >= v->count)
         return 0;
-    size_t i = 0;
-    char *a = (char *)v->type->t_at(v->data, index_1);
-    char *b = (char *)v->type->t_at(v->data, index_2);
-    for (; i < v->type->t_size; i++, a++, b++)
-    {
-        *a ^= *b;
-        *b ^= *a;
-        *a ^= *b;
-    }
+    v->type->t_swap(v->type->t_at(v->data, index_1), v->type->t_at(v->data, index_2));
     return 1;
 }
 
 void invert_vector(vector *const v)
 {
-    size_t i = 0;
-    size_t j = v->count - 1;
+    ssize_t i = 0;
+    ssize_t j = v->count - 1;
     for (; j > i; i++, j--)
     {
         swap_vector(v, i, j);

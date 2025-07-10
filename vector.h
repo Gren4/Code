@@ -4,7 +4,7 @@
 
 typedef struct vector vector;
 
-vector *create_vector(const size_t size, const type_func *type);
+vector *create_vector(const size_t size, const type_func *const type);
 void free_vector(vector *const v);
 int resize_vector(vector *const v, const size_t new_size);
 int append_vector(vector *const v, const void *const val);

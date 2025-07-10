@@ -5,12 +5,13 @@
 typedef struct type_func
 {
     size_t t_size;
-    void *(*t_at)(const void *, const size_t);
-    int (*t_cmp)(const void *, const void *);
-    void *(*t_cpy)(void *, const void *);
-    void *(*t_move)(void *, const void *);
-    void (*t_free)(void *);
-    size_t (*t_hash)(const void *);
+    void *(*t_at)(const void *const, const size_t);
+    int (*t_cmp)(const void *const, const void *const);
+    void *(*t_cpy)(void *const, const void *const);
+    void *(*t_move)(void *const, const void *const);
+    void (*t_free)(void *const);
+    size_t (*t_hash)(const void *const);
+    void (*t_swap)(void *const, void *const);
 } type_func;
 
 extern const type_func *f_uint8_t;
