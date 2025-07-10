@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define UO_MAP_MIN_SIZE 32
+#define HASH_MAP_MIN_SIZE 32
 
 typedef enum key_status
 {
@@ -25,7 +25,7 @@ typedef struct unordered_map
 
 unordered_map *create_hash_map(const size_t size, const type_func *const keys_type, const type_func *const data_type)
 {
-    size_t new_size = size < UO_MAP_MIN_SIZE ? UO_MAP_MIN_SIZE : next_power_of_2(size);
+    size_t new_size = size < HASH_MAP_MIN_SIZE ? HASH_MAP_MIN_SIZE : next_power_of_2(size);
     unordered_map new_m = {
         .count = 0,
         .size = new_size,
@@ -143,10 +143,10 @@ static int expand_hash_map(unordered_map *const m)
 
 static int shrink_hash_map(unordered_map *const m)
 {
-    if (--m->count >= m->size >> 3)
+    if (--m->count > m->size >> 3)
         return 1;
     size_t new_size = next_power_of_2(m->size >> 1);
-    if (new_size <= UO_MAP_MIN_SIZE)
+    if (new_size <= HASH_MAP_MIN_SIZE)
         return 1;
     key_status *new_status = (key_status *)calloc(new_size, sizeof(key_status));
     if (new_status == NULL)

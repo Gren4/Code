@@ -26,6 +26,11 @@ queue *create_queue(const size_t size, const type_func *const type)
     return (queue *)memcpy(malloc(sizeof(queue)), &new_q, sizeof(queue));
 }
 
+size_t count_queue(const queue * const q)
+{
+    return q->count;
+}
+
 void free_queue(queue *const q)
 {
     if (q->data != NULL)
@@ -57,15 +62,10 @@ static int expand_queue(queue *const q)
         return 0;
     if (q->offset != 0)
     {
-        size_t start_size = (q->count - 1 + q->offset) % q->size;
-        char *temp_buff = (char*)malloc(start_size * q->type->t_size);
-        if (temp_buff == NULL)
-            return 0;
-        size_t end_size = q->count - 1 - start_size;
-        memcpy(temp_buff, new_data, start_size * q->type->t_size);
-        memcpy(new_data, q->type->t_at(new_data, q->offset), end_size * q->type->t_size);
-        memcpy(q->type->t_at(new_data, end_size), temp_buff, start_size * q->type->t_size);
-        free(temp_buff);
+        size_t old_count = q->count - 1;
+        size_t start_size = (old_count + q->offset) % q->size;
+        memcpy(q->type->t_at(new_data, old_count), new_data, start_size * q->type->t_size);
+        memcpy(new_data, q->type->t_at(new_data, q->offset), old_count * q->type->t_size);
         q->offset = 0;
     }
     memset(new_data + q->size * q->type->t_size, 0, (mul_of_2_size - q->size) * q->type->t_size);
@@ -78,19 +78,26 @@ static int shrink_queue(queue *const q)
 {
     if (q->count <= 0)
         return 0;
-    if (--q->count >= q->size >> 3)
+    if (--q->count > q->size >> 3)
         return 1;
-    if (q->offset != 0)
+    if (q->count == 0)
     {
-        size_t start_size = (q->count + q->offset) % q->size;
-        char *temp_buff = (char*)malloc(start_size * q->type->t_size);
-        if (temp_buff == NULL)
-            return 0;
-        size_t end_size = q->count - start_size;
-        memcpy(temp_buff, q->data, start_size * q->type->t_size);
-        memcpy(q->data, q->type->t_at(q->data, q->offset), end_size * q->type->t_size);
-        memcpy(q->type->t_at(q->data, end_size), temp_buff, start_size * q->type->t_size);
-        free(temp_buff);
+        q->offset = 0;
+    }
+    else if (q->offset != 0)
+    {
+        if ((q->count + q->offset) < q->size)
+        {
+            memcpy(q->data, q->type->t_at(q->data, q->offset), q->count * q->type->t_size);
+        }
+        else
+        {
+            size_t start_offset = (q->count + q->offset) % q->size;
+            size_t end_size = q->count - start_offset;
+            memcpy(q->type->t_at(q->data, start_offset), q->type->t_at(q->data, q->offset), end_size * q->type->t_size);
+            memcpy(q->type->t_at(q->data, q->count), q->data, start_offset * q->type->t_size);
+            memcpy(q->data, q->type->t_at(q->data, start_offset), q->count * q->type->t_size);
+        }
         q->offset = 0;
     }
     size_t mul_of_2_size = next_power_of_2(q->count);
@@ -121,4 +128,14 @@ int pop_queue(queue *const q, void* const val)
         q->type->t_free(ptr);
     q->offset = (q->offset + 1) % q->size;
     return shrink_queue(q);
+}
+
+int at_front_queue(queue *const q, void* const val)
+{
+    if (q->count <= 0)
+        return 0;
+    char *ptr = q->type->t_at(q->data, q->offset);
+    if (val != NULL)
+        q->type->t_cpy(val, ptr);
+    return 1;
 }

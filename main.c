@@ -2,6 +2,7 @@
 #include "rbt_map.h"
 #include "hash_map.h"
 #include "queue.h"
+#include "dequeue.h"
 #include "util_funcs.h"
 #include "bit_types.h"
 #include "string_type.h"
@@ -14,49 +15,99 @@ void vector_test(void);
 void map_test(void);
 void unordered_map_test(void);
 void queue_test(void);
+void dequeue_test(void);
 
 int main(void)
 {
 //    float ad = 1422;
 //    bfloat r = (bfloat)ad;
 //    printf("%f\n", r.value);
-//    map_test();
+    map_test();
+//    dequeue_test();
 //    queue_test();
 //    unordered_map_test();
 //    vector_test();
-
+    printf("Done\n");
     return 1;
+}
+
+void dequeue_test(void)
+{
+    dequeue *dq = create_dequeue(2, f_uint8_t);
+
+    uint8_t a = 115;
+
+    for (; a > 0; a--)
+    {
+        push_front_dequeue(dq, &a);
+    }
+
+    for (a = 116; a <= 230; a++)
+    {
+        push_back_dequeue(dq, &a);
+    }
+
+    uint8_t b = 0;
+    while(pop_back_dequeue(dq, &b))
+    {
+        printf("%d\n", b);
+        if (pop_front_dequeue(dq, &b))
+            printf("%d\n", b);
+    }
+
+    free_dequeue(dq);
+
+    return;
 }
 
 void queue_test(void)
 {
-    queue *q = create_queue(4, f_uint8_t);
-    uint8_t a = 1;
-    uint8_t b = 0;
-    ssize_t i = 0;
-    for (i = 0; i < 8; i++, a++)
+    queue *q = create_queue(0, f_uint16_t);
+    vector *v = create_vector(0, f_uint16_t);
+    uint16_t i = 1;
+    for (; i < 16553; i++)
     {
-        push_queue(q, &a);
-    }
-    for (i = 0; i < 3; i++)
-    {
-        pop_queue(q, &b);
-    }
-    for (i = 0; i < 3; i++, a++)
-    {
-        push_queue(q, &a);
+        push_queue(q, &i);
+        append_vector(v, &i);
     }
 
-    push_queue(q, &a);
+    uint16_t res_q;
+    i = 0;
+    while (pop_queue(q, &res_q))
+    {
+        if (res_q !=  *(uint16_t *)at_vector(v, i))
+            printf("Error queue\n");
+        i++;
+    }
 
     free_queue(q);
+    free_vector(v);
 
     return;
 }
 
 void map_test(void)
 {
-//    rbt_map *b = create_map(sizeof(uint8_t), sizeof(uint8_t));
+    rbt_map *rbt = create_rbt_map(0, f_uint8_t, f_uint8_t);
+
+    uint8_t key, val;
+
+    key = 1; val = 10;
+    set_rbt_map(rbt, &key, &val);
+
+    key = 2; val = 20;
+    set_rbt_map(rbt, &key, &val);
+
+    key = 3; val = 30;
+    set_rbt_map(rbt, &key, &val);
+
+//    key = 2;
+//    delete_rbt_map(rbt, &key, &val);
+
+    key = 2; val = 40;
+    set_rbt_map(rbt, &key, &val);
+
+    free_rbt_map(rbt);
 //    uint8_t key = 3, val = 1;
 //    set_map(b, &key, &val);
 //    key = 3;

@@ -77,7 +77,7 @@ static inline int shrink_vector(vector *const v)
 {
     if (v->count <= 0)
         return 0;
-    if (--v->count >= v->size >> 3)
+    if (--v->count > v->size >> 3)
         return 1;
     size_t mul_of_2_size = next_power_of_2(v->count);
     char *new_data = realloc(v->data, mul_of_2_size * v->type->t_size);

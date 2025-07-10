@@ -38,7 +38,7 @@ size_t hash_64bit(const void *const src)
 size_t hash_string(const void *const src)
 {
     /* sdbm */
-    const uint8_t *key = ((string *)src)->data;
+    const char *key = ((string *)src)->data;
     size_t hash = 0;
     size_t c;
     while ((c = *key++))
@@ -91,17 +91,6 @@ void swap_64bit(void *const src_1, void *const src_2)
     *a ^= *b;
     *b ^= *a;
     *a ^= *b;
-    return;
-}
-void swap_string(void *const src_1, void *const src_2)
-{
-    if (src_1 == src_2)
-        return;
-#if UINTPTR_MAX == UINT64_MAX
-    swap_64bit(src_1, src_2);
-#elif UINTPTR_MAX == UINT32_MAX
-    swap_32bit(src_1, src_2);
-#endif
     return;
 }
 
@@ -388,7 +377,7 @@ const type_func orig_f_string = {
     .t_move = move_string,
     .t_free = free_string,
     .t_hash = hash_string,
-    .t_swap = swap_string};
+    .t_swap = sizeof(string) == sizeof(int64_t) ? swap_64bit : swap_32bit};
 
 /* float */
 void *at_float(const void *const src, const size_t index)
