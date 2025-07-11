@@ -19,14 +19,14 @@ void dequeue_test(void);
 
 int main(void)
 {
-//    float ad = 1422;
-//    bfloat r = (bfloat)ad;
-//    printf("%f\n", r.value);
+    ssize_t ad = 1422;
+    b_ssize_t r = (b_ssize_t)ad;
+    printf("%d\n", r.value);
     map_test();
-//    dequeue_test();
-//    queue_test();
-//    unordered_map_test();
-//    vector_test();
+    dequeue_test();
+    queue_test();
+    unordered_map_test();
+    vector_test();
     printf("Done\n");
     return 1;
 }
@@ -71,11 +71,13 @@ void queue_test(void)
         append_vector(v, &i);
     }
 
+    uint16_t res_v;
     uint16_t res_q;
     i = 0;
     while (pop_queue(q, &res_q))
     {
-        if (res_q !=  *(uint16_t *)at_vector(v, i))
+        at_vector(v, i, &res_v);
+        if (res_q !=  res_v)
             printf("Error queue\n");
         i++;
     }
@@ -101,33 +103,61 @@ void map_test(void)
     key = 3; val = 30;
     set_rbt_map(rbt, &key, &val);
 
-//    key = 2;
-//    delete_rbt_map(rbt, &key, &val);
-
     key = 2; val = 40;
     set_rbt_map(rbt, &key, &val);
 
+    key = 4; val = 20;
+    set_rbt_map(rbt, &key, &val);
+
+    key = 5; val = 50;
+    set_rbt_map(rbt, &key, &val);
+
+    key = 6; val = 60;
+    set_rbt_map(rbt, &key, &val);
+
+    key = 7; val = 70;
+    set_rbt_map(rbt, &key, &val);
+
+    key = 8; val = 80;
+    set_rbt_map(rbt, &key, &val);
+
+    key = 9; val = 90;
+    set_rbt_map(rbt, &key, &val);
+
+    key = 10; val = 100;
+    set_rbt_map(rbt, &key, &val);
+
+    key = 11; val = 110;
+    set_rbt_map(rbt, &key, &val);
+
+    key = 12; val = 120;
+    set_rbt_map(rbt, &key, &val);
+
+    key = 13; val = 130;
+    set_rbt_map(rbt, &key, &val);
+
+    key = 14; val = 140;
+    set_rbt_map(rbt, &key, &val);
+
+    key = 15; val = 150;
+    set_rbt_map(rbt, &key, &val);
+
+    key = 16; val = 160;
+    set_rbt_map(rbt, &key, &val);
+
+    key = 17; val = 170;
+    set_rbt_map(rbt, &key, &val);
+
+    key = 18; val = 180;
+    set_rbt_map(rbt, &key, &val);
+
+    key = 19; val = 190;
+    set_rbt_map(rbt, &key, &val);
+
+    key = 20; val = 200;
+    set_rbt_map(rbt, &key, &val);
+
     free_rbt_map(rbt);
-//    uint8_t key = 3, val = 1;
-//    set_map(b, &key, &val);
-//    key = 3;
-//    val = 2;
-//    set_map(b, &key, &val);
-//    key = 2;
-//    val = 3;
-//    set_map(b, &key, &val);
-//    key = 1;
-//    val = 4;
-//    set_map(b, &key, &val);
-//    key = 5;
-//    val = 5;
-//    set_map(b, &key, &val);
-//    key = 6;
-//    val = 6;
-//    set_map(b, &key, &val);
-//    key = 5;
-//    delete_map(b, &key, &val);
-//    free_map(b);
 
     return;
 }
@@ -187,53 +217,6 @@ void unordered_map_test(void)
     free_string(&ara);
     free_string(&bruh);
 
-//    unordered_map *b2 = create_hash_map(N, f_size_t, f_uint8_t);
-//
-//    size_t i = 0;
-//    a = 2;
-//    for (i = 0; i < N; i++, a++)
-//    {
-//        set_hash_map(b2, &i, &a);
-//    }
-//    printf("Added %d elements to hash map\n", N);
-//    i = N >> 1;
-//    if (has_key_hash_map(b2, &i))
-//    {
-//        get_hash_map(b2, &i, &a);
-//        printf("Have %llu key with value %d\n", i, a);
-//    }
-//    else
-//    {
-//        printf("No %llu key\n", i);
-//    }
-//
-//    for (i = N - 1; i > N >> 1; i--)
-//    {
-//        delete_hash_map(b2, &i, 0);
-//    }
-//    i = N >> 1;
-//    if (has_key_hash_map(b2, &i))
-//    {
-//        get_hash_map(b2, &i, &a);
-//        printf("Have %llu key with value %d\n", i, a);
-//    }
-//    else
-//    {
-//        printf("No %llu key\n", i);
-//    }
-//    i = (N >> 1) + 1;
-//    if (has_key_hash_map(b2, &i))
-//    {
-//        get_hash_map(b2, &i, &a);
-//        printf("Have %llu key with value %d\n", i, a);
-//    }
-//    else
-//    {
-//        printf("No %llu key\n", i);
-//    }
-//
-//    free_hash_map(b2);
-
     return;
 }
 
@@ -253,7 +236,7 @@ void vector_test(void)
     insert_vector(b, 5, (void *)&a);
     delete_vector(b, 5, NULL);
 
-    a = *((double *)at_vector(b, 2));
+    at_vector(b, 2, &a);
 
     invert_vector(b);
 

@@ -46,7 +46,7 @@ void free_vector(vector *const v)
 
 int resize_vector(vector *const v, const size_t new_size)
 {
-    if (v->size == new_size)
+    if (v->size >= new_size)
         return 1;
     size_t mul_of_2_size = next_power_of_2(new_size);
     char *new_data = realloc(v->data, mul_of_2_size * v->type->t_size);
@@ -75,8 +75,6 @@ static inline int expand_vector(vector *const v)
 
 static inline int shrink_vector(vector *const v)
 {
-    if (v->count <= 0)
-        return 0;
     if (--v->count > v->size >> 3)
         return 1;
     size_t mul_of_2_size = next_power_of_2(v->count);
@@ -90,7 +88,7 @@ static inline int shrink_vector(vector *const v)
 
 int append_vector(vector *const v, const void *const val)
 {
-    if (expand_vector(v) == 0)
+    if (val == NULL || v->count == SIZE_MAX || expand_vector(v) == 0)
         return 0;
     v->type->t_cpy(v->type->t_at(v->data, v->count - 1), val);
     return 1;
@@ -98,7 +96,7 @@ int append_vector(vector *const v, const void *const val)
 
 int pop_vector(vector *const v, void *const val)
 {
-    if (v->count <= 0)
+    if (v->count == 0)
         return 0;
     char *ptr = v->type->t_at(v->data, v->count - 1);
     if (val != NULL)
@@ -110,9 +108,7 @@ int pop_vector(vector *const v, void *const val)
 
 int insert_vector(vector *const v, const size_t index, const void *const val)
 {
-    if (index > v->count)
-        return 0;
-    if (expand_vector(v) == 0)
+    if (val == NULL || v->count == SIZE_MAX || index > v->count || expand_vector(v) == 0)
         return 0;
     char *ptr = v->type->t_at(v->data, index);
     memcpy(v->type->t_at(v->data, index + 1), ptr, (v->count - index - 1) * v->type->t_size);
@@ -122,7 +118,7 @@ int insert_vector(vector *const v, const size_t index, const void *const val)
 
 int delete_vector(vector *const v, const size_t index, void *const val)
 {
-    if (index >= v->count)
+    if (val == NULL || v->count == 0 || index >= v->count)
         return 0;
     char *ptr = v->type->t_at(v->data, index);
     if (val != NULL)
@@ -133,9 +129,13 @@ int delete_vector(vector *const v, const size_t index, void *const val)
     return shrink_vector(v);
 }
 
-inline void *at_vector(const vector *const v, const size_t index)
+int at_vector(const vector *const v, const size_t index, void *const val)
 {
-    return v->type->t_at(v->data, index);
+    if (index >= v->count)
+        return 0;
+    if (val != NULL)
+        v->type->t_cpy(val, v->type->t_at(v->data, index));
+    return 1;
 }
 
 void sort_vector(vector *const v, int (*compare_func)(const void *, const void *))
@@ -154,6 +154,8 @@ int swap_vector(vector *const v, const size_t index_1, const size_t index_2)
 
 void invert_vector(vector *const v)
 {
+    if (v->count <= 1)
+        return;
     ssize_t i = 0;
     ssize_t j = v->count - 1;
     for (; j > i; i++, j--)

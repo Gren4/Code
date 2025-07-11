@@ -76,8 +76,6 @@ static int expand_queue(queue *const q)
 
 static int shrink_queue(queue *const q)
 {
-    if (q->count <= 0)
-        return 0;
     if (--q->count > q->size >> 3)
         return 1;
     if (q->count == 0)
@@ -111,7 +109,7 @@ static int shrink_queue(queue *const q)
 
 int push_queue(queue *const q, const void* const val)
 {
-    if (expand_queue(q) == 0)
+    if (val == NULL || q->count == SIZE_MAX || expand_queue(q) == 0)
         return 0;
     q->type->t_cpy(q->type->t_at(q->data, (q->offset + q->count - 1) % q->size), val);
     return 1;
@@ -119,7 +117,7 @@ int push_queue(queue *const q, const void* const val)
 
 int pop_queue(queue *const q, void* const val)
 {
-    if (q->count <= 0)
+    if (q->count == 0)
         return 0;
     char *ptr = q->type->t_at(q->data, q->offset);
     if (val != NULL)
@@ -132,7 +130,7 @@ int pop_queue(queue *const q, void* const val)
 
 int at_front_queue(queue *const q, void* const val)
 {
-    if (q->count <= 0)
+    if (q->count == 0)
         return 0;
     char *ptr = q->type->t_at(q->data, q->offset);
     if (val != NULL)

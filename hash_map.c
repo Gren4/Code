@@ -198,6 +198,8 @@ static int shrink_hash_map(unordered_map *const m)
 
 int set_hash_map(unordered_map *const m, const void *const key, const void *const val)
 {
+    if (key == NULL || val == NULL || m->count == SIZE_MAX)
+        return 0;
     size_t index = m->keys_type->t_hash(m->keys_type->t_at(key, 0)) % m->size;
     size_t i = index;
     size_t offset = 1;
@@ -245,7 +247,7 @@ static size_t get_index_hash_map(const unordered_map *const m, const void *const
 
 int get_hash_map(const unordered_map *const m, const void *const key, void *const val)
 {
-    if (m->count <= 0)
+    if (key == NULL || val == NULL || m->count == 0)
         return 0;
     size_t index = get_index_hash_map(m, key);
     if (index == m->count)
@@ -256,7 +258,7 @@ int get_hash_map(const unordered_map *const m, const void *const key, void *cons
 
 int delete_hash_map(unordered_map *const m, const void *const key, void *const val)
 {
-    if (m->count <= 0)
+    if (key == NULL || m->count == 0)
         return 0;
     size_t index = get_index_hash_map(m, key);
     if (index == m->count)
@@ -273,5 +275,8 @@ int delete_hash_map(unordered_map *const m, const void *const key, void *const v
 
 int has_key_hash_map(const unordered_map *const m, const void *const key)
 {
-    return get_index_hash_map(m, key) != m->count;
+    if (key == NULL)
+        return 0;
+    else
+        return get_index_hash_map(m, key) != m->count;
 }

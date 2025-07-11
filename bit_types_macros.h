@@ -72,12 +72,12 @@
 #define assert_error_string(x) #x
 #define bit_type_def(type_name, bits_count)                                                                               \
     static_assert((sizeof(type_name) << 3) == bits_count, assert_error_string(Incorrect bits count for type type_name)); \
-    typedef union b##type_name                                                                                           \
+    typedef union b_##type_name                                                                                           \
     {                                                                                                                    \
         type_name value;                                                                                                 \
         struct                                                                                                           \
         {                                                                                                                \
             bit##bits_count##_t;                                                                                         \
         };                                                                                                               \
-    } b##type_name
+    } b_##type_name
 

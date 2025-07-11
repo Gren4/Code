@@ -12,13 +12,10 @@ bit_type_def(uint64_t, 64);
 bit_type_def(int64_t, 64);
 #if SIZE_MAX == UINT32_MAX
 bit_type_def(size_t, 32);
+bit_type_def(ssize_t, 32);
 #elif SIZE_MAX == UINT64_MAX
 bit_type_def(size_t, 64);
-#endif // SIZE_MAX
-#if SSIZE_MAX == INT32_MAX
-bit_type_def(ssize_t, 32);
-#elif SSIZE_MAX == INT64_MAX
 bit_type_def(ssize_t, 64);
-#endif // SSIZE_MAX
+#endif // SIZE_MAX
 bit_type_def(float, 32);
 bit_type_def(double, 64);

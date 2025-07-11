@@ -80,8 +80,6 @@ static int expand_dequeue(dequeue *const dq)
 
 static int shrink_dequeue(dequeue *const dq)
 {
-    if (dq->count <= 0)
-        return 0;
     if (--dq->count > dq->size >> 3)
         return 1;
     if (dq->count == 0)
@@ -117,7 +115,7 @@ static int shrink_dequeue(dequeue *const dq)
 
 int push_front_dequeue(dequeue *const dq, const void *const val)
 {
-    if (expand_dequeue(dq) == 0)
+    if (val == NULL || dq->count == SIZE_MAX || expand_dequeue(dq) == 0)
         return 0;
     if (dq->front != dq->back || dq->count > 1)
         dq->front = dq->front == 0 ? dq->size - 1 : dq->front - 1;
@@ -127,7 +125,7 @@ int push_front_dequeue(dequeue *const dq, const void *const val)
 
 int push_back_dequeue(dequeue *const dq, const void *const val)
 {
-    if (expand_dequeue(dq) == 0)
+    if (val == NULL || dq->count == SIZE_MAX || expand_dequeue(dq) == 0)
         return 0;
     if (dq->back != dq->front || dq->count > 1)
         dq->back = (dq->back + 1) % dq->size;
@@ -137,7 +135,7 @@ int push_back_dequeue(dequeue *const dq, const void *const val)
 
 int pop_front_dequeue(dequeue *const dq, void *const val)
 {
-    if (dq->count <= 0)
+    if (dq->count == 0)
         return 0;
     char *ptr = dq->type->t_at(dq->data, dq->front);
     if (val != NULL)
@@ -150,7 +148,7 @@ int pop_front_dequeue(dequeue *const dq, void *const val)
 
 int pop_back_dequeue(dequeue *const dq, void *const val)
 {
-    if (dq->count <= 0)
+    if (dq->count == 0)
         return 0;
     char *ptr = dq->type->t_at(dq->data, dq->back);
     if (val != NULL)
@@ -163,7 +161,7 @@ int pop_back_dequeue(dequeue *const dq, void *const val)
 
 int at_front_dequeue(dequeue *const dq, void *const val)
 {
-    if (dq->count <= 0)
+    if (dq->count == 0)
         return 0;
     char *ptr = dq->type->t_at(dq->data, dq->front);
     if (val != NULL)
@@ -173,7 +171,7 @@ int at_front_dequeue(dequeue *const dq, void *const val)
 
 int at_back_dequeue(dequeue *const dq, void *const val)
 {
-    if (dq->count <= 0)
+    if (dq->count == 0)
         return 0;
     char *ptr = dq->type->t_at(dq->data, dq->back);
     if (val != NULL)
