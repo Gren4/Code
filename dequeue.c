@@ -37,7 +37,7 @@ void free_dequeue(dequeue *const dq)
 {
     if (dq->data != NULL)
     {
-        if (dq->type->t_free != NULL && dq->count > 0)
+        if (dq->count > 0)
         {
             ssize_t i = 0;
             for (; i < dq->count; i++)
@@ -140,8 +140,7 @@ int pop_front_dequeue(dequeue *const dq, void *const val)
     char *ptr = dq->type->t_at(dq->data, dq->front);
     if (val != NULL)
         dq->type->t_cpy(val, ptr);
-    if (dq->type->t_free != NULL)
-        dq->type->t_free(ptr);
+    dq->type->t_free(ptr);
     dq->front = (dq->front + 1) % dq->size;
     return shrink_dequeue(dq);
 }
@@ -153,28 +152,25 @@ int pop_back_dequeue(dequeue *const dq, void *const val)
     char *ptr = dq->type->t_at(dq->data, dq->back);
     if (val != NULL)
         dq->type->t_cpy(val, ptr);
-    if (dq->type->t_free != NULL)
-        dq->type->t_free(ptr);
+    dq->type->t_free(ptr);
     dq->back = dq->back == 0 ? dq->size - 1 : dq->back - 1;
     return shrink_dequeue(dq);
 }
 
 int at_front_dequeue(dequeue *const dq, void *const val)
 {
-    if (dq->count == 0)
+    if (val == NULL || dq->count == 0)
         return 0;
     char *ptr = dq->type->t_at(dq->data, dq->front);
-    if (val != NULL)
-        dq->type->t_cpy(val, ptr);
+    dq->type->t_cpy(val, ptr);
     return 1;
 }
 
 int at_back_dequeue(dequeue *const dq, void *const val)
 {
-    if (dq->count == 0)
+    if (val == NULL || dq->count == 0)
         return 0;
     char *ptr = dq->type->t_at(dq->data, dq->back);
-    if (val != NULL)
-        dq->type->t_cpy(val, ptr);
+    dq->type->t_cpy(val, ptr);
     return 1;
 }

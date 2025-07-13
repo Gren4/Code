@@ -143,10 +143,8 @@ static int free_node(rbt_node_pool *const pool, const size_t index, void *const 
         return 0;
     if (val != NULL)
         pool->data_type->t_cpy(val, pool->nodes[index].val);
-    if (pool->keys_type->t_free != NULL)
-        pool->keys_type->t_free(pool->nodes[index].key);
-    if (pool->data_type->t_free != NULL)
-        pool->data_type->t_free(pool->nodes[index].val);
+    pool->keys_type->t_free(pool->nodes[index].key);
+    pool->data_type->t_free(pool->nodes[index].val);
     pool->nodes[index].left = 0;
     pool->nodes[index].right = 0;
     pool->nodes[index].parent = 0;
@@ -442,7 +440,7 @@ void free_rbt_map(rbt_map *m)
 {
     if (m->pool.keys != NULL)
     {
-        if (m->pool.keys_type->t_free != NULL && m->pool.count > 1)
+        if (m->pool.count > 1)
         {
             ssize_t i = 1;
             for (; i < m->pool.size; i++)
@@ -455,7 +453,7 @@ void free_rbt_map(rbt_map *m)
     }
     if (m->pool.data != NULL)
     {
-        if (m->pool.data_type->t_free != NULL && m->pool.count > 1)
+        if (m->pool.count > 1)
         {
             ssize_t i = 1;
             for (; i < m->pool.size; i++)
@@ -493,6 +491,7 @@ int set_rbt_map(rbt_map *const m, const void *const key, const void *const val)
         int cmp_result = m->pool.keys_type->t_cmp(key, x_node->key);
         if (cmp_result == 0)
         {
+            m->pool.data_type->t_free(x_node->val);
             m->pool.data_type->t_cpy(x_node->val, val);
             return 1;
         }
@@ -625,7 +624,7 @@ int delete_rbt_map(rbt_map *m, const void *const key, void *const val)
 
 int get_min_rbt_map(rbt_map *m, const void *const key, void *const val)
 {
-    if (m->root == m->nil)
+    if ((key == NULL && val == NULL) || m->root == m->nil)
         return 0;
     size_t index = minimum_node(m, m->root);
     rbt_node *min = node_from_pool(m, index);
@@ -638,7 +637,7 @@ int get_min_rbt_map(rbt_map *m, const void *const key, void *const val)
 
 int get_max_rbt_map(rbt_map *m, const void *const key, void *const val)
 {
-    if (m->root == m->nil)
+    if ((key == NULL && val == NULL) || m->root == m->nil)
         return 0;
     size_t index = maximum_node(m, m->root);
     rbt_node *max = node_from_pool(m, index);

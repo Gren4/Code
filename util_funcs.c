@@ -25,8 +25,6 @@ size_t next_power_of_2(size_t num)
 
 size_t calculate_padding(size_t current_addres, size_t data_size)
 {
-    size_t offset = current_addres % data_size;
-    if (offset == 0)
-        return 0;
-    return data_size - offset;
+    size_t offset = ((current_addres + data_size - 1) / data_size) * data_size;
+    return offset - current_addres;
 }

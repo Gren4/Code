@@ -35,10 +35,10 @@ size_t hash_64bit(const void *const src)
     x = ((x >> 27) ^ x) * 0x94D049BB133111EB;
     return x ^ (x >> 31);
 }
-size_t hash_string(const void *const src)
+size_t hash_string_t(const void *const src)
 {
     /* sdbm */
-    const char *key = ((string *)src)->data;
+    const char *key = get_string(*(string_t *)src);
     size_t hash = 0;
     size_t c;
     while ((c = *key++))
@@ -110,13 +110,19 @@ void *cpy_uint8_t(void *const dest, const void *const src)
     *(uint8_t *)dest = *(uint8_t *)src;
     return dest;
 }
+void free_uint8_t(void *const src)
+{
+    uint8_t *val = (uint8_t *)src;
+    *val = 0;
+    return;
+}
 const type_func orig_f_uint8_t = {
     .t_size = sizeof(uint8_t),
     .t_at = at_uint8_t,
     .t_cmp = cmp_uint8_t,
     .t_cpy = cpy_uint8_t,
     .t_move = cpy_uint8_t,
-    .t_free = NULL,
+    .t_free = free_uint8_t,
     .t_hash = hash_8bit,
     .t_swap = swap_8bit};
 
@@ -136,13 +142,19 @@ void *cpy_int8_t(void *const dest, const void *const src)
     *(int8_t *)dest = *(int8_t *)src;
     return dest;
 }
+void free_int8_t(void *const src)
+{
+    int8_t *val = (int8_t *)src;
+    *val = 0;
+    return;
+}
 const type_func orig_f_int8_t = {
     .t_size = sizeof(int8_t),
     .t_at = at_int8_t,
     .t_cmp = cmp_int8_t,
     .t_cpy = cpy_int8_t,
     .t_move = cpy_int8_t,
-    .t_free = NULL,
+    .t_free = free_int8_t,
     .t_hash = hash_8bit,
     .t_swap = swap_8bit};
 
@@ -162,13 +174,19 @@ void *cpy_uint16_t(void *const dest, const void *const src)
     *(uint16_t *)dest = *(uint16_t *)src;
     return dest;
 }
+void free_uint16_t(void *const src)
+{
+    uint16_t *val = (uint16_t *)src;
+    *val = 0;
+    return;
+}
 const type_func orig_f_uint16_t = {
     .t_size = sizeof(uint16_t),
     .t_at = at_uint16_t,
     .t_cmp = cmp_uint16_t,
     .t_cpy = cpy_uint16_t,
     .t_move = cpy_uint16_t,
-    .t_free = NULL,
+    .t_free = free_uint16_t,
     .t_hash = hash_16bit,
     .t_swap = swap_16bit};
 
@@ -188,13 +206,19 @@ void *cpy_int16_t(void *const dest, const void *const src)
     *(int16_t *)dest = *(int16_t *)src;
     return dest;
 }
+void free_int16_t(void *const src)
+{
+    int16_t *val = (int16_t *)src;
+    *val = 0;
+    return;
+}
 const type_func orig_f_int16_t = {
     .t_size = sizeof(int16_t),
     .t_at = at_int16_t,
     .t_cmp = cmp_int16_t,
     .t_cpy = cpy_int16_t,
     .t_move = cpy_int16_t,
-    .t_free = NULL,
+    .t_free = free_int16_t,
     .t_hash = hash_16bit,
     .t_swap = swap_16bit};
 
@@ -214,13 +238,19 @@ void *cpy_uint32_t(void *const dest, const void *const src)
     *(uint32_t *)dest = *(uint32_t *)src;
     return dest;
 }
+void free_uint32_t(void *const src)
+{
+    uint32_t *val = (uint32_t *)src;
+    *val = 0;
+    return;
+}
 const type_func orig_f_uint32_t = {
     .t_size = sizeof(uint32_t),
     .t_at = at_uint32_t,
     .t_cmp = cmp_uint32_t,
     .t_cpy = cpy_uint32_t,
     .t_move = cpy_uint32_t,
-    .t_free = NULL,
+    .t_free = free_uint32_t,
     .t_hash = hash_32bit,
     .t_swap = swap_32bit};
 
@@ -240,13 +270,19 @@ void *cpy_int32_t(void *const dest, const void *const src)
     *(int32_t *)dest = *(int32_t *)src;
     return dest;
 }
+void free_int32_t(void *const src)
+{
+    int32_t *val = (int32_t *)src;
+    *val = 0;
+    return;
+}
 const type_func orig_f_int32_t = {
     .t_size = sizeof(int32_t),
     .t_at = at_int32_t,
     .t_cmp = cmp_int32_t,
     .t_cpy = cpy_int32_t,
     .t_move = cpy_int32_t,
-    .t_free = NULL,
+    .t_free = free_int32_t,
     .t_hash = hash_32bit,
     .t_swap = swap_32bit};
 
@@ -266,13 +302,19 @@ void *cpy_uint64_t(void *const dest, const void *const src)
     *(uint64_t *)dest = *(uint64_t *)src;
     return dest;
 }
+void free_uint64_t(void *const src)
+{
+    uint64_t *val = (uint64_t *)src;
+    *val = 0;
+    return;
+}
 const type_func orig_f_uint64_t = {
     .t_size = sizeof(uint64_t),
     .t_at = at_uint64_t,
     .t_cmp = cmp_uint64_t,
     .t_cpy = cpy_uint64_t,
     .t_move = cpy_uint64_t,
-    .t_free = NULL,
+    .t_free = free_uint64_t,
     .t_hash = hash_64bit,
     .t_swap = swap_64bit};
 
@@ -292,13 +334,19 @@ void *cpy_int64_t(void *const dest, const void *const src)
     *(int64_t *)dest = *(int64_t *)src;
     return dest;
 }
+void free_int64_t(void *const src)
+{
+    int64_t *val = (int64_t *)src;
+    *val = 0;
+    return;
+}
 const type_func orig_f_int64_t = {
     .t_size = sizeof(int64_t),
     .t_at = at_int64_t,
     .t_cmp = cmp_int64_t,
     .t_cpy = cpy_int64_t,
     .t_move = cpy_int64_t,
-    .t_free = NULL,
+    .t_free = free_int64_t,
     .t_hash = hash_64bit,
     .t_swap = swap_64bit};
 
@@ -318,13 +366,19 @@ void *cpy_size_t(void *const dest, const void *const src)
     *(size_t *)dest = *(size_t *)src;
     return dest;
 }
+void free_size_t(void *const src)
+{
+    size_t *val = (size_t *)src;
+    *val = 0;
+    return;
+}
 const type_func orig_f_size_t = {
     .t_size = sizeof(size_t),
     .t_at = at_size_t,
     .t_cmp = cmp_size_t,
     .t_cpy = cpy_size_t,
     .t_move = cpy_size_t,
-    .t_free = NULL,
+    .t_free = free_size_t,
     .t_hash = sizeof(size_t) == sizeof(int64_t) ? hash_64bit : hash_32bit,
     .t_swap = sizeof(size_t) == sizeof(int64_t) ? swap_64bit : swap_32bit};
 
@@ -344,40 +398,58 @@ void *cpy_ssize_t(void *const dest, const void *const src)
     *(ssize_t *)dest = *(ssize_t *)src;
     return dest;
 }
+void free_ssize_t(void *const src)
+{
+    ssize_t *val = (ssize_t *)src;
+    *val = 0;
+    return;
+}
 const type_func orig_f_ssize_t = {
     .t_size = sizeof(ssize_t),
     .t_at = at_ssize_t,
     .t_cmp = cmp_ssize_t,
     .t_cpy = cpy_ssize_t,
     .t_move = cpy_ssize_t,
-    .t_free = NULL,
+    .t_free = free_ssize_t,
     .t_hash = sizeof(size_t) == sizeof(int64_t) ? hash_64bit : hash_32bit,
     .t_swap = sizeof(size_t) == sizeof(int64_t) ? swap_64bit : swap_32bit};
 
-/* string */
-void *at_string(const void *const src, const size_t index)
+/* string_t */
+void *at_string_t(const void *const src, const size_t index)
 {
-    return ((string *)src) + index;
+    return ((string_t *)src) + index;
 }
-int cmp_string(const void *const src_1, const void *const src_2)
+int cmp_string_t(const void *const src_1, const void *const src_2)
 {
-    const string *str_1 = (const string *)src_1;
-    const string *str_2 = (const string *)src_2;
-    return strcmp(str_1->data, str_2->data);
+    return strcmp(get_string(*(const string_t *)src_1), get_string(*(const string_t *)src_2));
 }
-void *move_string(void *const dest, const void *const src)
+void *cpy_string_t(void *const dest, const void *const src)
 {
-    return memcpy((string *)dest, (const string *)src, sizeof(string));
+    if (*(string_t *)dest != *(string_t *)src)
+        *(string_t *)dest = copy_shared_ptr(*(string_t *)src);
+    return dest;
 }
-const type_func orig_f_string = {
-    .t_size = sizeof(string),
-    .t_at = at_string,
-    .t_cmp = cmp_string,
-    .t_cpy = cpy_string,
-    .t_move = move_string,
-    .t_free = free_string,
-    .t_hash = hash_string,
-    .t_swap = sizeof(string) == sizeof(int64_t) ? swap_64bit : swap_32bit};
+void *move_string_t(void *const dest, const void *const src)
+{
+    *(string_t *)dest = *(string_t *)src;
+    return dest;
+}
+void free_string_t(void *const src)
+{
+    string_t *val = (string_t *)src;
+    free_string(*val);
+    *val = NULL;
+    return;
+}
+const type_func orig_f_string_t = {
+    .t_size = sizeof(string_t),
+    .t_at = at_string_t,
+    .t_cmp = cmp_string_t,
+    .t_cpy = cpy_string_t,
+    .t_move = move_string_t,
+    .t_free = free_string_t,
+    .t_hash = hash_string_t,
+    .t_swap = sizeof(string_t) == sizeof(int64_t) ? swap_64bit : swap_32bit};
 
 /* float */
 void *at_float(const void *const src, const size_t index)
@@ -396,13 +468,19 @@ void *cpy_float(void *const dest, const void *const src)
     *(float *)dest = *(float *)src;
     return dest;
 }
+void free_float(void *const src)
+{
+    float *val = (float *)src;
+    *val = 0.0f;
+    return;
+}
 const type_func orig_f_float = {
     .t_size = sizeof(float),
     .t_at = at_float,
     .t_cmp = cmp_float,
     .t_cpy = cpy_float,
     .t_move = cpy_float,
-    .t_free = NULL,
+    .t_free = free_float,
     .t_hash = hash_32bit,
     .t_swap = swap_32bit};
 
@@ -423,13 +501,19 @@ void *cpy_double(void *const dest, const void *const src)
     *(double *)dest = *(double *)src;
     return dest;
 }
+void free_double(void *const src)
+{
+    double *val = (double *)src;
+    *val = 0.0;
+    return;
+}
 const type_func orig_f_double = {
     .t_size = sizeof(double),
     .t_at = at_double,
     .t_cmp = cmp_double,
     .t_cpy = cpy_double,
     .t_move = cpy_double,
-    .t_free = NULL,
+    .t_free = free_double,
     .t_hash = hash_64bit,
     .t_swap = swap_64bit};
 
@@ -444,6 +528,6 @@ const type_func *f_uint64_t = &orig_f_uint64_t;
 const type_func *f_int64_t = &orig_f_int64_t;
 const type_func *f_size_t = &orig_f_size_t;
 const type_func *f_ssize_t = &orig_f_ssize_t;
-const type_func *f_string = &orig_f_string;
+const type_func *f_string_t = &orig_f_string_t;
 const type_func *f_float = &orig_f_float;
 const type_func *f_double = &orig_f_double;

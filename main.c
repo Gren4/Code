@@ -6,6 +6,7 @@
 #include "util_funcs.h"
 #include "bit_types.h"
 #include "string_type.h"
+#include "shared_ptr.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -16,12 +17,10 @@ void map_test(void);
 void unordered_map_test(void);
 void queue_test(void);
 void dequeue_test(void);
-
 int main(void)
 {
-    ssize_t ad = 1422;
-    b_ssize_t r = (b_ssize_t)ad;
-    printf("%d\n", r.value);
+    shared_ptr d_p = malloc_shared_ptr(15, 1);
+
     map_test();
     dequeue_test();
     queue_test();
@@ -76,7 +75,7 @@ void queue_test(void)
     i = 0;
     while (pop_queue(q, &res_q))
     {
-        at_vector(v, i, &res_v);
+        get_vector(v, i, &res_v);
         if (res_q !=  res_v)
             printf("Error queue\n");
         i++;
@@ -166,39 +165,39 @@ void unordered_map_test(void)
 {
     uint8_t a = 13;
 
-    unordered_map *b1 = create_hash_map(0, f_string, f_uint8_t);
-    string ara = create_string("ara");
-    string bruh = create_string("bruh");
+    unordered_map *b1 = create_hash_map(0, f_string_t, f_uint8_t);
+    string_t ara = create_string("ara");
+    string_t bruh = create_string("bruh");
     set_hash_map(b1, &ara, &a);
 
     if (has_key_hash_map(b1, &ara))
     {
         get_hash_map(b1, &ara, &a);
-        printf("Have %s key with value %d\n", ara.data, a);
+        printf("Have %s key with value %d\n", get_string(ara), a);
     }
     else
     {
-        printf("No %s key\n", ara.data);
+        printf("No %s key\n", get_string(ara));
     }
     if (has_key_hash_map(b1, &bruh))
     {
         get_hash_map(b1, &bruh, &a);
-        printf("Have %s key with value %d\n", bruh.data, a);
+        printf("Have %s key with value %d\n", get_string(bruh), a);
     }
     else
     {
-        printf("No %s key\n", bruh.data);
+        printf("No %s key\n", get_string(bruh));
     }
     delete_hash_map(b1, &ara, NULL);
 
     if (has_key_hash_map(b1, &ara))
     {
         get_hash_map(b1, &ara, &a);
-        printf("Have %s key with value %d\n", ara.data, a);
+        printf("Have %s key with value %d\n", get_string(ara), a);
     }
     else
     {
-        printf("No %s key\n", ara.data);
+        printf("No %s key\n", get_string(ara));
     }
     a = 15;
     set_hash_map(b1, &ara, &a);
@@ -206,16 +205,16 @@ void unordered_map_test(void)
     if (has_key_hash_map(b1, &ara))
     {
         get_hash_map(b1, &ara, &a);
-        printf("Have %s key with value %d\n", ara.data, a);
+        printf("Have %s key with value %d\n", get_string(ara), a);
     }
     else
     {
-        printf("No %s key\n", ara.data);
+        printf("No %s key\n", get_string(ara));
     }
 
     free_hash_map(b1);
-    free_string(&ara);
-    free_string(&bruh);
+    free_string(ara);
+    free_string(bruh);
 
     return;
 }
@@ -236,7 +235,7 @@ void vector_test(void)
     insert_vector(b, 5, (void *)&a);
     delete_vector(b, 5, NULL);
 
-    at_vector(b, 2, &a);
+    get_vector(b, 2, &a);
 
     invert_vector(b);
 

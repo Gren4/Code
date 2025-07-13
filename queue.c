@@ -35,7 +35,7 @@ void free_queue(queue *const q)
 {
     if (q->data != NULL)
     {
-        if (q->type->t_free != NULL && q->count > 0)
+        if (q->count > 0)
         {
             ssize_t i = 0;
             for (; i < q->count; i++)
@@ -122,18 +122,16 @@ int pop_queue(queue *const q, void* const val)
     char *ptr = q->type->t_at(q->data, q->offset);
     if (val != NULL)
         q->type->t_cpy(val, ptr);
-    if (q->type->t_free != NULL)
-        q->type->t_free(ptr);
+    q->type->t_free(ptr);
     q->offset = (q->offset + 1) % q->size;
     return shrink_queue(q);
 }
 
 int at_front_queue(queue *const q, void* const val)
 {
-    if (q->count == 0)
+    if (val == NULL || q->count == 0)
         return 0;
     char *ptr = q->type->t_at(q->data, q->offset);
-    if (val != NULL)
-        q->type->t_cpy(val, ptr);
+    q->type->t_cpy(val, ptr);
     return 1;
 }

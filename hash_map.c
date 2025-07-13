@@ -54,7 +54,7 @@ void free_hash_map(unordered_map *const m)
 {
     if (m->keys != NULL)
     {
-        if (m->keys_type->t_free != NULL && m->count > 0)
+        if (m->count > 0)
         {
             ssize_t i = 0;
             for (; i < m->size; i++)
@@ -67,7 +67,7 @@ void free_hash_map(unordered_map *const m)
     }
     if (m->data != NULL)
     {
-        if (m->data_type->t_free != NULL && m->count > 0)
+        if (m->count > 0)
         {
             ssize_t i = 0;
             for (; i < m->size; i++)
@@ -208,6 +208,7 @@ int set_hash_map(unordered_map *const m, const void *const key, const void *cons
         key_status *status = m->status + i;
         if (*status == USED && m->keys_type->t_cmp(m->keys_type->t_at(m->keys, i), key) == 0)
         {
+            m->data_type->t_free(m->data_type->t_at(m->data, i));
             m->data_type->t_cpy(m->data_type->t_at(m->data, i), val);
             return 1;
         }
@@ -266,10 +267,8 @@ int delete_hash_map(unordered_map *const m, const void *const key, void *const v
     if (val != NULL)
         m->data_type->t_cpy(val, m->data_type->t_at(m->data, index));
     *(m->status + index) = DELETED;
-    if (m->keys_type->t_free != NULL)
-        m->keys_type->t_free(m->keys_type->t_at(m->keys, index));
-    if (m->data_type->t_free != NULL)
-        m->data_type->t_free(m->data_type->t_at(m->data, index));
+    m->keys_type->t_free(m->keys_type->t_at(m->keys, index));
+    m->data_type->t_free(m->data_type->t_at(m->data, index));
     return shrink_hash_map(m);
 }
 

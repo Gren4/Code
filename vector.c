@@ -28,7 +28,7 @@ void free_vector(vector *const v)
 {
     if (v->data != NULL)
     {
-        if (v->type->t_free != NULL && v->count > 0)
+        if (v->count > 0)
         {
             ssize_t i = 0;
             for (; i < v->count; i++)
@@ -101,8 +101,7 @@ int pop_vector(vector *const v, void *const val)
     char *ptr = v->type->t_at(v->data, v->count - 1);
     if (val != NULL)
         v->type->t_cpy(val, ptr);
-    if (v->type->t_free != NULL)
-        v->type->t_free(ptr);
+    v->type->t_free(ptr);
     return shrink_vector(v);
 }
 
@@ -118,23 +117,30 @@ int insert_vector(vector *const v, const size_t index, const void *const val)
 
 int delete_vector(vector *const v, const size_t index, void *const val)
 {
-    if (val == NULL || v->count == 0 || index >= v->count)
+    if (v->count == 0 || index >= v->count)
         return 0;
     char *ptr = v->type->t_at(v->data, index);
     if (val != NULL)
         v->type->t_cpy(val, ptr);
-    if (v->type->t_free != NULL)
-        v->type->t_free(ptr);
+    v->type->t_free(ptr);
     memcpy(ptr, v->type->t_at(v->data, index + 1), (v->count - index - 1) * v->type->t_size);
     return shrink_vector(v);
 }
 
-int at_vector(const vector *const v, const size_t index, void *const val)
+int set_vector(const vector *const v, const size_t index, void *const val)
 {
-    if (index >= v->count)
+    if (val == NULL || index >= v->count)
         return 0;
-    if (val != NULL)
-        v->type->t_cpy(val, v->type->t_at(v->data, index));
+    v->type->t_free(v->type->t_at(v->data, index));
+    v->type->t_cpy(v->type->t_at(v->data, index), val);
+    return 1;
+}
+
+int get_vector(const vector *const v, const size_t index, void *const val)
+{
+    if (val == NULL || index >= v->count)
+        return 0;
+    v->type->t_cpy(val, v->type->t_at(v->data, index));
     return 1;
 }
 

@@ -1,10 +1,8 @@
 #pragma once
+#include "shared_ptr.h"
 
-typedef struct string
-{
-    char *data;
-} string;
+typedef shared_ptr string_t;
 
-string create_string(const char *const str);
-void *cpy_string(void *const dest, const void *const src);
-void free_string(void *const str);
+string_t create_string(const char *const str);
+char * get_string(string_t const str);
+void free_string(string_t const str);

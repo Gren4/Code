@@ -24,6 +24,6 @@ extern const type_func *f_uint64_t;
 extern const type_func *f_int64_t;
 extern const type_func *f_size_t;
 extern const type_func *f_ssize_t;
-extern const type_func *f_string;
+extern const type_func *f_string_t;
 extern const type_func *f_float;
 extern const type_func *f_double;
