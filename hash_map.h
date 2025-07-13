@@ -4,7 +4,7 @@
 
 typedef struct unordered_map unordered_map;
 
-unordered_map *create_hash_map(const size_t size, const type_func *const keys_type, const type_func *const data_type);
+unordered_map *create_hash_map(const size_t size, const type_func *const keys_type, const type_func *const container_type);
 void free_hash_map(unordered_map *const m);
 int set_hash_map(unordered_map *const m, const void *const key, const void *const val);
 int get_hash_map(const unordered_map *const m, const void *const key, void *const val);

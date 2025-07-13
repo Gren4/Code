@@ -19,13 +19,11 @@ void queue_test(void);
 void dequeue_test(void);
 int main(void)
 {
-    shared_ptr d_p = malloc_shared_ptr(15, 1);
-
     map_test();
-    dequeue_test();
-    queue_test();
-    unordered_map_test();
-    vector_test();
+//    dequeue_test();
+//    queue_test();
+//    unordered_map_test();
+//    vector_test();
     printf("Done\n");
     return 1;
 }
@@ -62,99 +60,52 @@ void dequeue_test(void)
 void queue_test(void)
 {
     queue *q = create_queue(0, f_uint16_t);
-    vector *v = create_vector(0, f_uint16_t);
     uint16_t i = 1;
-    for (; i < 16553; i++)
+    for (; i < 256; i++)
     {
         push_queue(q, &i);
-        append_vector(v, &i);
     }
-
-    uint16_t res_v;
-    uint16_t res_q;
-    i = 0;
-    while (pop_queue(q, &res_q))
+    for (; i > 15; i--)
     {
-        get_vector(v, i, &res_v);
-        if (res_q !=  res_v)
-            printf("Error queue\n");
-        i++;
+        pop_queue(q, 0);
+    }
+    for (; i < 256; i++)
+    {
+        push_queue(q, &i);
+    }
+    while (pop_queue(q, &i))
+    {
+        printf("Queue %d\n", i);
     }
 
     free_queue(q);
-    free_vector(v);
 
     return;
 }
-
+#define RBT 512
 void map_test(void)
 {
-    rbt_map *rbt = create_rbt_map(0, f_uint8_t, f_uint8_t);
+    rbt_map *rbt = create_rbt_map(0, f_uint16_t, f_uint16_t);
 
-    uint8_t key, val;
+    uint16_t key = 0, val = RBT;
 
-    key = 1; val = 10;
-    set_rbt_map(rbt, &key, &val);
+    for (; key < RBT; key++, val--)
+    {
+        set_rbt_map(rbt, &key, &val);
+    }
 
-    key = 2; val = 20;
-    set_rbt_map(rbt, &key, &val);
+    for (key = 0; key < 385; key++)
+    {
+        delete_rbt_map(rbt, &key, 0);
+    }
 
-    key = 3; val = 30;
-    set_rbt_map(rbt, &key, &val);
-
-    key = 2; val = 40;
-    set_rbt_map(rbt, &key, &val);
-
-    key = 4; val = 20;
-    set_rbt_map(rbt, &key, &val);
-
-    key = 5; val = 50;
-    set_rbt_map(rbt, &key, &val);
-
-    key = 6; val = 60;
-    set_rbt_map(rbt, &key, &val);
-
-    key = 7; val = 70;
-    set_rbt_map(rbt, &key, &val);
-
-    key = 8; val = 80;
-    set_rbt_map(rbt, &key, &val);
-
-    key = 9; val = 90;
-    set_rbt_map(rbt, &key, &val);
-
-    key = 10; val = 100;
-    set_rbt_map(rbt, &key, &val);
-
-    key = 11; val = 110;
-    set_rbt_map(rbt, &key, &val);
-
-    key = 12; val = 120;
-    set_rbt_map(rbt, &key, &val);
-
-    key = 13; val = 130;
-    set_rbt_map(rbt, &key, &val);
-
-    key = 14; val = 140;
-    set_rbt_map(rbt, &key, &val);
-
-    key = 15; val = 150;
-    set_rbt_map(rbt, &key, &val);
-
-    key = 16; val = 160;
-    set_rbt_map(rbt, &key, &val);
-
-    key = 17; val = 170;
-    set_rbt_map(rbt, &key, &val);
-
-    key = 18; val = 180;
-    set_rbt_map(rbt, &key, &val);
-
-    key = 19; val = 190;
-    set_rbt_map(rbt, &key, &val);
-
-    key = 20; val = 200;
-    set_rbt_map(rbt, &key, &val);
+//    for (key = 0; key < RBT; key++)
+//    {
+//        if (get_rbt_map(rbt, &key, &val) == 1)
+//            printf("RBT Map has key %d with a value %d\n", key, val);
+//        else
+//            printf("RBT Map doesn't have key %d\n", key);
+//    }
 
     free_rbt_map(rbt);
 
@@ -163,59 +114,28 @@ void map_test(void)
 
 void unordered_map_test(void)
 {
-    uint8_t a = 13;
-
-    unordered_map *b1 = create_hash_map(0, f_string_t, f_uint8_t);
-    string_t ara = create_string("ara");
-    string_t bruh = create_string("bruh");
-    set_hash_map(b1, &ara, &a);
-
-    if (has_key_hash_map(b1, &ara))
+    unordered_map *hm = create_hash_map(0, f_uint8_t, f_uint8_t);
+    uint8_t a = 0;
+    uint8_t b = 255;
+    for (a = 0; a < 255; a++, b--)
     {
-        get_hash_map(b1, &ara, &a);
-        printf("Have %s key with value %d\n", get_string(ara), a);
-    }
-    else
-    {
-        printf("No %s key\n", get_string(ara));
-    }
-    if (has_key_hash_map(b1, &bruh))
-    {
-        get_hash_map(b1, &bruh, &a);
-        printf("Have %s key with value %d\n", get_string(bruh), a);
-    }
-    else
-    {
-        printf("No %s key\n", get_string(bruh));
-    }
-    delete_hash_map(b1, &ara, NULL);
-
-    if (has_key_hash_map(b1, &ara))
-    {
-        get_hash_map(b1, &ara, &a);
-        printf("Have %s key with value %d\n", get_string(ara), a);
-    }
-    else
-    {
-        printf("No %s key\n", get_string(ara));
-    }
-    a = 15;
-    set_hash_map(b1, &ara, &a);
-
-    if (has_key_hash_map(b1, &ara))
-    {
-        get_hash_map(b1, &ara, &a);
-        printf("Have %s key with value %d\n", get_string(ara), a);
-    }
-    else
-    {
-        printf("No %s key\n", get_string(ara));
+        set_hash_map(hm, &a, &b);
     }
 
-    free_hash_map(b1);
-    free_string(ara);
-    free_string(bruh);
+    for (a = 1; a < 255; a+=2, b--)
+    {
+        delete_hash_map(hm, &a, &b);
+    }
 
+    for (a = 0; a < 255; a++)
+    {
+        if (get_hash_map(hm, &a, &b) == 0)
+            printf("Hash map doesn't have a key %d\n", a);
+        else
+            printf("Hash map has a key %d\n", a);
+    }
+
+    free_hash_map(hm);
     return;
 }
 

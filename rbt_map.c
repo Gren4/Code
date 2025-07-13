@@ -1,4 +1,5 @@
 #include "rbt_map.h"
+#include "shared_ptr.h"
 #include "util_funcs.h"
 #include <stdlib.h>
 #include <string.h>
@@ -16,9 +17,8 @@ typedef struct rbt_node
     size_t left;
     size_t right;
     size_t parent;
-    char *key;
-    char *val;
     rbt_node_color color;
+    char used;
 } rbt_node;
 
 typedef struct rbt_node_pool
@@ -26,11 +26,11 @@ typedef struct rbt_node_pool
     size_t size;
     size_t count;
     size_t least_unused;
-    rbt_node *nodes;
-    char *keys;
-    char *data;
     const type_func *keys_type;
-    const type_func *data_type;
+    const type_func *container_type;
+    shared_ptr nodes;
+    shared_ptr keys;
+    shared_ptr container;
 } rbt_node_pool;
 
 typedef struct rbt_map
@@ -42,20 +42,20 @@ typedef struct rbt_map
 
 static int init_pool(rbt_node_pool *const pool, const size_t size)
 {
-    pool->nodes = (rbt_node *)calloc(size, sizeof(rbt_node));
+    pool->nodes = calloc_shared_ptr(size, sizeof(rbt_node));
     if (pool->nodes == NULL)
         return 0;
-    pool->keys = (char *)calloc(size, pool->keys_type->t_size);
+    pool->keys = calloc_shared_ptr(size, pool->keys_type->t_size);
     if (pool->keys == NULL)
     {
-        free(pool->nodes);
+        free_shared_ptr(pool->nodes);
         return 0;
     }
-    pool->data = (char *)calloc(size, pool->data_type->t_size);
-    if (pool->data == NULL)
+    pool->container = calloc_shared_ptr(size, pool->container_type->t_size);
+    if (pool->container == NULL)
     {
-        free(pool->nodes);
-        free(pool->keys);
+        free_shared_ptr(pool->nodes);
+        free_shared_ptr(pool->keys);
         return 0;
     }
     pool->size = size;
@@ -65,32 +65,36 @@ static int init_pool(rbt_node_pool *const pool, const size_t size)
 
 static int expand_pool(rbt_node_pool *const pool)
 {
-    if (++pool->count <= pool->size)
+    if (++pool->count < pool->size)
         return 1;
-    size_t new_size = pool->size << 1;
-    rbt_node *new_nodes = (rbt_node *)realloc(pool->nodes, new_size * sizeof(rbt_node));
+    size_t mul_of_2_size = next_power_of_2(pool->size << 1);
+    shared_ptr new_nodes = realloc_shared_ptr(pool->nodes, mul_of_2_size, sizeof(rbt_node));
     if (new_nodes == NULL)
         return 0;
-    char *new_keys = (char *)realloc(pool->keys, new_size * pool->keys_type->t_size);
+    shared_ptr new_keys = realloc_shared_ptr(pool->keys, mul_of_2_size, pool->keys_type->t_size);
     if (new_keys == NULL)
     {
-        free(new_nodes);
+        free_shared_ptr(new_nodes);
         return 0;
     }
-    char *new_data = (char *)realloc(pool->data, new_size * pool->data_type->t_size);
-    if (new_data == NULL)
+    shared_ptr new_container = realloc_shared_ptr(pool->container, mul_of_2_size, pool->container_type->t_size);
+    if (new_container == NULL)
     {
-        free(new_nodes);
-        free(new_keys);
+        free_shared_ptr(new_nodes);
+        free_shared_ptr(new_keys);
         return 0;
     }
-    memset(new_nodes + pool->size, 0, (new_size - pool->size) * sizeof(rbt_node));
-    memset(new_keys + pool->size * pool->keys_type->t_size, 0, (new_size - pool->size) * pool->keys_type->t_size);
-    memset(new_data + pool->size * pool->data_type->t_size, 0, (new_size - pool->size) * pool->data_type->t_size);
+    rbt_node *nodes_data = data_shared_ptr(new_nodes);
+    char *keys_data = data_shared_ptr(new_keys);
+    char *container_data = data_shared_ptr(new_container);
+    size_t elements = mul_of_2_size - pool->size;
+    memset(nodes_data + pool->size, 0, elements * sizeof(rbt_node));
+    memset(pool->keys_type->t_at(keys_data, pool->size), 0, elements * pool->keys_type->t_size);
+    memset(pool->container_type->t_at(container_data, pool->size), 0, elements * pool->container_type->t_size);
     pool->nodes = new_nodes;
     pool->keys = new_keys;
-    pool->data = new_data;
-    pool->size = new_size;
+    pool->container = new_container;
+    pool->size = mul_of_2_size;
     return 1;
 }
 
@@ -103,18 +107,17 @@ static int shrink_pool(rbt_node_pool *const pool)
 
 static rbt_node *node_from_pool(const rbt_map *const m, const size_t index)
 {
-    return m->pool.nodes + index;
+    return ((rbt_node *)data_shared_ptr(m->pool.nodes)) + index;
 }
 
 static size_t get_unused_node(rbt_node_pool *const pool)
 {
     ssize_t i = pool->least_unused;
+    rbt_node *nodes_data = data_shared_ptr(pool->nodes);
     for (; i < pool->size; i++)
     {
-        if (pool->nodes[i].key == NULL && pool->nodes[i].val == NULL)
-        {
+        if (nodes_data[i].used == 0)
             return i;
-        }
     }
     return pool->size;
 }
@@ -123,14 +126,16 @@ static rbt_node * allocate_node(rbt_node_pool *const pool, const size_t index, c
 {
     if (expand_pool(pool) == 0)
         return NULL;
-    rbt_node *node = pool->nodes + index;
+    rbt_node *nodes_data = data_shared_ptr(pool->nodes);
+    char *keys_data = data_shared_ptr(pool->keys);
+    char *container_data = data_shared_ptr(pool->container);
+    rbt_node *node = nodes_data + index;
     node->left = 0;
     node->right = 0;
     node->parent = 0;
-    node->val = pool->data_type->t_at(pool->data, index);
-    node->key = pool->keys_type->t_at(pool->keys, index);
-    pool->data_type->t_cpy(node->val, val);
-    pool->keys_type->t_cpy(node->key, key);
+    node->used = 1;
+    pool->container_type->t_cpy(pool->container_type->t_at(container_data, index), val);
+    pool->keys_type->t_cpy(pool->keys_type->t_at(keys_data, index), key);
     node->color = RED;
     if (pool->least_unused != SIZE_MAX)
         pool->least_unused = index + 1;
@@ -141,16 +146,18 @@ static int free_node(rbt_node_pool *const pool, const size_t index, void *const 
 {
     if (index >= pool->size)
         return 0;
+    rbt_node *nodes_data = data_shared_ptr(pool->nodes);
+    char *keys_data = data_shared_ptr(pool->keys);
+    char *container_data = data_shared_ptr(pool->container);
     if (val != NULL)
-        pool->data_type->t_cpy(val, pool->nodes[index].val);
-    pool->keys_type->t_free(pool->nodes[index].key);
-    pool->data_type->t_free(pool->nodes[index].val);
-    pool->nodes[index].left = 0;
-    pool->nodes[index].right = 0;
-    pool->nodes[index].parent = 0;
-    pool->nodes[index].key = NULL;
-    pool->nodes[index].val = NULL;
-    pool->nodes[index].color = RED;
+        pool->container_type->t_cpy(val, pool->container_type->t_at(container_data, index));
+    pool->keys_type->t_free(pool->keys_type->t_at(keys_data, index));
+    pool->container_type->t_free(pool->container_type->t_at(container_data, index));
+    nodes_data[index].left = 0;
+    nodes_data[index].right = 0;
+    nodes_data[index].parent = 0;
+    nodes_data[index].used = 0;
+    nodes_data[index].color = RED;
     if (index < pool->least_unused)
         pool->least_unused = index;
     return shrink_pool(pool);
@@ -414,7 +421,7 @@ static void delete_fixup(rbt_map *const m, size_t x_index)
     return;
 }
 
-rbt_map *create_rbt_map(const size_t size, const type_func *const keys_type, const type_func *const data_type)
+rbt_map *create_rbt_map(const size_t size, const type_func *const keys_type, const type_func *const container_type)
 {
     size_t mul_of_2_size = size < RBT_MAP_MIN_SIZE ? RBT_MAP_MIN_SIZE : next_power_of_2(size);
     rbt_map new_m = {
@@ -423,16 +430,15 @@ rbt_map *create_rbt_map(const size_t size, const type_func *const keys_type, con
         .pool = {
             .least_unused = 1,
             .keys_type = keys_type,
-            .data_type = data_type}};
+            .container_type = container_type}};
     if (init_pool(&new_m.pool, mul_of_2_size) == 0)
         return NULL;
-    rbt_node *nil_node = new_m.pool.nodes;
+    rbt_node *nil_node = data_shared_ptr(new_m.pool.nodes);
     nil_node->color = BLACK;
     nil_node->left = 0;
     nil_node->right = 0;
     nil_node->parent = 0;
-    nil_node->key = NULL;
-    nil_node->val = NULL;
+    nil_node->used = 1;
     return (rbt_map *)memcpy(malloc(sizeof(rbt_map)), &new_m, sizeof(rbt_map));
 }
 
@@ -440,35 +446,33 @@ void free_rbt_map(rbt_map *m)
 {
     if (m->pool.keys != NULL)
     {
-        if (m->pool.count > 1)
+        ssize_t i = 1;
+        rbt_node *nodes_data = data_shared_ptr(m->pool.nodes);
+        char *keys_data = data_shared_ptr(m->pool.keys);
+        for (; i < m->pool.size; i++)
         {
-            ssize_t i = 1;
-            for (; i < m->pool.size; i++)
-            {
-                if (m->pool.nodes[i].key == NULL && m->pool.nodes[i].val == NULL)
-                    m->pool.keys_type->t_free(m->pool.keys_type->t_at(m->pool.keys, i));
-            }
+            if (nodes_data[i].used == 1)
+                m->pool.keys_type->t_free(m->pool.keys_type->t_at(keys_data, i));
         }
-        free(m->pool.keys);
+        free_shared_ptr(m->pool.keys);
     }
-    if (m->pool.data != NULL)
+    if (m->pool.container != NULL)
     {
-        if (m->pool.count > 1)
+        ssize_t i = 1;
+        rbt_node *nodes_data = data_shared_ptr(m->pool.nodes);
+        char *container_data = data_shared_ptr(m->pool.container);
+        for (; i < m->pool.size; i++)
         {
-            ssize_t i = 1;
-            for (; i < m->pool.size; i++)
-            {
-                if (m->pool.nodes[i].key == NULL && m->pool.nodes[i].val == NULL)
-                    m->pool.data_type->t_free(m->pool.data_type->t_at(m->pool.data, i));
-            }
+            if (nodes_data[i].used == 1)
+                m->pool.container_type->t_free(m->pool.container_type->t_at(container_data, i));
         }
-        free(m->pool.data);
+        free_shared_ptr(m->pool.container);
     }
     if (m->pool.nodes != NULL)
-        free(m->pool.nodes);
+        free_shared_ptr(m->pool.nodes);
     m->pool.nodes = NULL;
     m->pool.keys = NULL;
-    m->pool.data = NULL;
+    m->pool.container = NULL;
     m->pool.size = 0;
     m->pool.count = 0;
     m->root = m->nil;
@@ -484,15 +488,18 @@ int set_rbt_map(rbt_map *const m, const void *const key, const void *const val)
         return 0;
     size_t y = m->nil;
     size_t x = m->root;
+    char *keys_data = data_shared_ptr(m->pool.keys);
+    char *container_data = data_shared_ptr(m->pool.container);
     while (x != m->nil)
     {
         y = x;
         rbt_node *x_node = node_from_pool(m, x);
-        int cmp_result = m->pool.keys_type->t_cmp(key, x_node->key);
+        int cmp_result = m->pool.keys_type->t_cmp(key, m->pool.keys_type->t_at(keys_data, x));
         if (cmp_result == 0)
         {
-            m->pool.data_type->t_free(x_node->val);
-            m->pool.data_type->t_cpy(x_node->val, val);
+            char *ptr = m->pool.container_type->t_at(container_data, x);
+            m->pool.container_type->t_free(ptr);
+            m->pool.container_type->t_cpy(ptr, val);
             return 1;
         }
         else
@@ -510,6 +517,8 @@ int set_rbt_map(rbt_map *const m, const void *const key, const void *const val)
     rbt_node *z = allocate_node(&m->pool, z_index, key, val);
     if (z == NULL)
         return 0;
+    keys_data = data_shared_ptr(m->pool.keys);
+    container_data = data_shared_ptr(m->pool.container);
     z->parent = y;
     if (y == m->nil)
     {
@@ -518,7 +527,7 @@ int set_rbt_map(rbt_map *const m, const void *const key, const void *const val)
     else
     {
         rbt_node *y_node = node_from_pool(m, y);
-        int cmp_result = m->pool.keys_type->t_cmp(z->key, y_node->key);
+        int cmp_result = m->pool.keys_type->t_cmp(m->pool.keys_type->t_at(keys_data, z_index), m->pool.keys_type->t_at(keys_data, y));
         if (cmp_result == -1)
         {
             y_node->left = z_index;
@@ -538,10 +547,11 @@ int set_rbt_map(rbt_map *const m, const void *const key, const void *const val)
 static size_t get_index_rbt_map(const rbt_map *const m, const void *const key)
 {
     size_t current = m->root;
+    char *keys_data = data_shared_ptr(m->pool.keys);
     while (current != m->nil)
     {
         rbt_node *node = node_from_pool(m, current);
-        int cmp_result = m->pool.keys_type->t_cmp(node->key, key);
+        int cmp_result = m->pool.keys_type->t_cmp(m->pool.keys_type->t_at(keys_data, current), key);
         if (cmp_result == 0)
         {
             return current;
@@ -558,7 +568,7 @@ static size_t get_index_rbt_map(const rbt_map *const m, const void *const key)
     return m->nil;
 }
 
-int has_rbt_map(const rbt_map *const m, const void *const key)
+int has_key_rbt_map(const rbt_map *const m, const void *const key)
 {
     if (key == NULL)
         return 0;
@@ -573,7 +583,8 @@ int get_rbt_map(rbt_map *m, const void *const key, void *const val)
     size_t z_index = get_index_rbt_map(m, key);
     if (z_index == m->nil)
         return 0;
-    m->pool.data_type->t_cpy(val, m->pool.data_type->t_at(m->pool.data, z_index));
+    char *container_data = data_shared_ptr(m->pool.container);
+    m->pool.container_type->t_cpy(val, m->pool.container_type->t_at(container_data, z_index));
     return 1;
 }
 
@@ -627,11 +638,12 @@ int get_min_rbt_map(rbt_map *m, const void *const key, void *const val)
     if ((key == NULL && val == NULL) || m->root == m->nil)
         return 0;
     size_t index = minimum_node(m, m->root);
-    rbt_node *min = node_from_pool(m, index);
+    char *keys_data = data_shared_ptr(m->pool.keys);
+    char *container_data = data_shared_ptr(m->pool.container);
     if (key != NULL)
-        m->pool.keys_type->t_cpy(min->key, key);
+        m->pool.keys_type->t_cpy(m->pool.keys_type->t_at(keys_data, index), key);
     if (val != NULL)
-        m->pool.data_type->t_cpy(min->val, val);
+        m->pool.container_type->t_cpy(m->pool.container_type->t_at(container_data, index), val);
     return 1;
 }
 
@@ -640,10 +652,11 @@ int get_max_rbt_map(rbt_map *m, const void *const key, void *const val)
     if ((key == NULL && val == NULL) || m->root == m->nil)
         return 0;
     size_t index = maximum_node(m, m->root);
-    rbt_node *max = node_from_pool(m, index);
+    char *keys_data = data_shared_ptr(m->pool.keys);
+    char *container_data = data_shared_ptr(m->pool.container);
     if (key != NULL)
-        m->pool.keys_type->t_cpy(max->key, key);
+        m->pool.keys_type->t_cpy(m->pool.keys_type->t_at(keys_data, index), key);
     if (val != NULL)
-        m->pool.data_type->t_cpy(max->val, val);
+        m->pool.container_type->t_cpy(m->pool.container_type->t_at(container_data, index), val);
     return 1;
 }

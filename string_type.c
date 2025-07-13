@@ -3,7 +3,7 @@
 
 string_t create_string(const char *const str)
 {
-    string_t new_string = malloc_shared_ptr(sizeof(char), strlen(str) + 1);
+    string_t new_string = malloc_shared_ptr(strlen(str) + 1, sizeof(char));
     strcpy(data_shared_ptr(new_string), str);
     return new_string;
 }
