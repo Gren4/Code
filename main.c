@@ -99,13 +99,13 @@ void map_test(void)
         delete_rbt_map(rbt, &key, 0);
     }
 
-//    for (key = 0; key < RBT; key++)
-//    {
-//        if (get_rbt_map(rbt, &key, &val) == 1)
-//            printf("RBT Map has key %d with a value %d\n", key, val);
-//        else
-//            printf("RBT Map doesn't have key %d\n", key);
-//    }
+    for (key = 0; key < RBT; key++)
+    {
+        if (get_rbt_map(rbt, &key, &val) == 1)
+            printf("RBT Map has key %d with a value %d\n", key, val);
+        else
+            printf("RBT Map doesn't have key %d\n", key);
+    }
 
     free_rbt_map(rbt);
 

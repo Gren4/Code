@@ -32,7 +32,7 @@ void free_vector(vector *const v)
     if (v->container != NULL)
     {
         ssize_t i = 0;
-        char *container_data = data_shared_ptr(v->container);
+        void *container_data = data_shared_ptr(v->container);
         for (; i < v->count; i++)
         {
             v->type->t_free(v->type->t_at(container_data, i));
@@ -42,6 +42,7 @@ void free_vector(vector *const v)
     v->count = 0;
     v->size = 0;
     v->container = NULL;
+    free(v);
     return;
 }
 
@@ -101,10 +102,10 @@ int pop_vector(vector *const v, void *const val)
 {
     if (v->count == 0)
         return 0;
-    char *ptr = v->type->t_at(data_shared_ptr(v->container), v->count - 1);
+    void *container_val = v->type->t_at(data_shared_ptr(v->container), v->count - 1);
     if (val != NULL)
-        v->type->t_cpy(val, ptr);
-    v->type->t_free(ptr);
+        v->type->t_cpy(val, container_val);
+    v->type->t_free(container_val);
     return shrink_vector(v);
 }
 
@@ -112,10 +113,10 @@ int insert_vector(vector *const v, const size_t index, const void *const val)
 {
     if (val == NULL || v->count == SIZE_MAX || index > v->count || expand_vector(v) == 0)
         return 0;
-    char *container_data = data_shared_ptr(v->container);
-    char *ptr = v->type->t_at(container_data, index);
-    memcpy(v->type->t_at(container_data, index + 1), ptr, (v->count - index - 1) * v->type->t_size);
-    v->type->t_cpy(ptr, val);
+    void *container_data = data_shared_ptr(v->container);
+    void *container_val = v->type->t_at(container_data, index);
+    memcpy(v->type->t_at(container_data, index + 1), container_val, (v->count - index - 1) * v->type->t_size);
+    v->type->t_cpy(container_val, val);
     return 1;
 }
 
@@ -123,12 +124,12 @@ int delete_vector(vector *const v, const size_t index, void *const val)
 {
     if (v->count == 0 || index >= v->count)
         return 0;
-    char *container_data = data_shared_ptr(v->container);
-    char *ptr = v->type->t_at(container_data, index);
+    void *container_data = data_shared_ptr(v->container);
+    void *container_val = v->type->t_at(container_data, index);
     if (val != NULL)
-        v->type->t_cpy(val, ptr);
-    v->type->t_free(ptr);
-    memcpy(ptr, v->type->t_at(container_data, index + 1), (v->count - index - 1) * v->type->t_size);
+        v->type->t_cpy(val, container_val);
+    v->type->t_free(container_val);
+    memcpy(container_val, v->type->t_at(container_data, index + 1), (v->count - index - 1) * v->type->t_size);
     return shrink_vector(v);
 }
 
@@ -136,7 +137,7 @@ int set_vector(const vector *const v, const size_t index, void *const val)
 {
     if (val == NULL || index >= v->count)
         return 0;
-    char *container_data = data_shared_ptr(v->container);
+    void *container_data = data_shared_ptr(v->container);
     v->type->t_free(v->type->t_at(container_data, index));
     v->type->t_cpy(v->type->t_at(container_data, index), val);
     return 1;
@@ -160,7 +161,7 @@ int swap_vector(vector *const v, const size_t index_1, const size_t index_2)
 {
     if (index_1 >= v->count && index_2 >= v->count)
         return 0;
-    char *container_data = data_shared_ptr(v->container);
+    void *container_data = data_shared_ptr(v->container);
     v->type->t_swap(v->type->t_at(container_data, index_1), v->type->t_at(container_data, index_2));
     return 1;
 }

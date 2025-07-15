@@ -41,7 +41,7 @@ void free_dequeue(dequeue *const dq)
     if (dq->container != NULL)
     {
         ssize_t i = 0;
-        char *container_data = data_shared_ptr(dq->container);
+        void *container_data = data_shared_ptr(dq->container);
         for (; i < dq->count; i++)
         {
             dq->type->t_free(dq->type->t_at(container_data, i));
@@ -53,6 +53,7 @@ void free_dequeue(dequeue *const dq)
     dq->front = 0;
     dq->back = 0;
     dq->container = NULL;
+    free(dq);
     return;
 }
 
@@ -64,7 +65,7 @@ static int expand_dequeue(dequeue *const dq)
     shared_ptr new_container = realloc_shared_ptr(dq->container, mul_of_2_size, dq->type->t_size);
     if (new_container == NULL)
         return 0;
-    char *container_data = data_shared_ptr(new_container);
+    void *container_data = data_shared_ptr(new_container);
     if (dq->front != 0)
     {
         size_t old_count = dq->count - 1;
@@ -94,7 +95,7 @@ static int shrink_dequeue(dequeue *const dq)
         return 1;
     if (dq->front != 0)
     {
-        char *container_data = data_shared_ptr(dq->container);
+        void *container_data = data_shared_ptr(dq->container);
         if (dq->back > dq->front)
         {
             memcpy(container_data, dq->type->t_at(container_data, dq->front), dq->count * dq->type->t_size);
@@ -142,10 +143,10 @@ int pop_front_dequeue(dequeue *const dq, void *const val)
 {
     if (dq->count == 0)
         return 0;
-    char *ptr = dq->type->t_at(data_shared_ptr(dq->container), dq->front);
+    void *container_val = dq->type->t_at(data_shared_ptr(dq->container), dq->front);
     if (val != NULL)
-        dq->type->t_cpy(val, ptr);
-    dq->type->t_free(ptr);
+        dq->type->t_cpy(val, container_val);
+    dq->type->t_free(container_val);
     dq->front = (dq->front + 1) % dq->size;
     return shrink_dequeue(dq);
 }
@@ -154,10 +155,10 @@ int pop_back_dequeue(dequeue *const dq, void *const val)
 {
     if (dq->count == 0)
         return 0;
-    char *ptr = dq->type->t_at(data_shared_ptr(dq->container), dq->back);
+    void *container_val = dq->type->t_at(data_shared_ptr(dq->container), dq->back);
     if (val != NULL)
-        dq->type->t_cpy(val, ptr);
-    dq->type->t_free(ptr);
+        dq->type->t_cpy(val, container_val);
+    dq->type->t_free(container_val);
     dq->back = dq->back == 0 ? dq->size - 1 : dq->back - 1;
     return shrink_dequeue(dq);
 }

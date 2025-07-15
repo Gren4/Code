@@ -12,7 +12,7 @@ typedef struct queue
     size_t size;
     size_t offset;
     const type_func* type;
-    char *container;
+    shared_ptr container;
 } queue;
 
 queue *create_queue(const size_t size, const type_func *const type)
@@ -39,7 +39,7 @@ void free_queue(queue *const q)
     if (q->container != NULL)
     {
         ssize_t i = 0;
-        char *container_data = data_shared_ptr(q->container);
+        void *container_data = data_shared_ptr(q->container);
         for (; i < q->count; i++)
         {
             q->type->t_free(q->type->t_at(container_data, i));
@@ -50,6 +50,7 @@ void free_queue(queue *const q)
     q->size = 0;
     q->offset = 0;
     q->container = NULL;
+    free(q);
     return;
 }
 
@@ -61,7 +62,7 @@ static int expand_queue(queue *const q)
     shared_ptr new_container = realloc_shared_ptr(q->container, mul_of_2_size, q->type->t_size);
     if (new_container == NULL)
         return 0;
-    char *container_data = data_shared_ptr(new_container);
+    void *container_data = data_shared_ptr(new_container);
     if (q->offset != 0)
     {
         size_t old_count = q->count - 1;
@@ -87,7 +88,7 @@ static int shrink_queue(queue *const q)
         return 1;
     if (q->offset != 0)
     {
-        char *container_data = data_shared_ptr(q->container);
+        void *container_data = data_shared_ptr(q->container);
         if ((q->count + q->offset) < q->size)
         {
             memcpy(container_data, q->type->t_at(container_data, q->offset), q->count * q->type->t_size);
@@ -122,10 +123,10 @@ int pop_queue(queue *const q, void* const val)
 {
     if (q->count == 0)
         return 0;
-    char *ptr = q->type->t_at(data_shared_ptr(q->container), q->offset);
+    void *container_val = q->type->t_at(data_shared_ptr(q->container), q->offset);
     if (val != NULL)
-        q->type->t_cpy(val, ptr);
-    q->type->t_free(ptr);
+        q->type->t_cpy(val, container_val);
+    q->type->t_free(container_val);
     q->offset = (q->offset + 1) % q->size;
     return shrink_queue(q);
 }

@@ -60,7 +60,7 @@ void free_hash_map(unordered_map *const m)
     {
         ssize_t i = 0;
         key_status *status_data = data_shared_ptr(m->status);
-        char *keys_data = data_shared_ptr(m->keys);
+        void *keys_data = data_shared_ptr(m->keys);
         for (; i < m->size; i++)
         {
             if (status_data[i] == m->cur_flag)
@@ -72,7 +72,7 @@ void free_hash_map(unordered_map *const m)
     {
         ssize_t i = 0;
         key_status *status_data = data_shared_ptr(m->status);
-        char *container_data = data_shared_ptr(m->container);
+        void *container_data = data_shared_ptr(m->container);
         for (; i < m->size; i++)
         {
             if (status_data[i] == m->cur_flag)
@@ -87,6 +87,7 @@ void free_hash_map(unordered_map *const m)
     m->status = NULL;
     m->keys = NULL;
     m->container = NULL;
+    free(m);
     return;
 }
 
@@ -114,8 +115,8 @@ static int expand_hash_map(unordered_map *const m)
     ssize_t i = 0;
     key_status new_flag = m->cur_flag == USED_1 ? USED_2 : USED_1;
     key_status *status_data = data_shared_ptr(new_status);
-    char *keys_data = data_shared_ptr(new_keys);
-    char *container_data = data_shared_ptr(new_container);
+    void *keys_data = data_shared_ptr(new_keys);
+    void *container_data = data_shared_ptr(new_container);
     memset(status_data + m->size, 0, (mul_of_2_size - m->size) * sizeof(key_status));
     memset(m->keys_type->t_at(keys_data, m->size), 0, (mul_of_2_size - m->size) * m->keys_type->t_size);
     memset(m->container_type->t_at(container_data, m->size), 0, (mul_of_2_size - m->size) * m->container_type->t_size);
@@ -124,8 +125,8 @@ static int expand_hash_map(unordered_map *const m)
         if (status_data[i] != m->cur_flag)
             continue;
         key_status *cur_status = status_data + i;
-        char *key = m->keys_type->t_at(keys_data, i);
-        char *val = m->container_type->t_at(container_data, i);
+        void *key = m->keys_type->t_at(keys_data, i);
+        void *val = m->container_type->t_at(container_data, i);
         size_t index = m->keys_type->t_hash(key) % mul_of_2_size;
         size_t offset = 1;
         for (;;)
@@ -162,15 +163,15 @@ static int shrink_hash_map(unordered_map *const m)
     ssize_t i = 0;
     key_status new_flag = m->cur_flag == USED_1 ? USED_2 : USED_1;
     key_status *status_data = data_shared_ptr(m->status);
-    char *keys_data = data_shared_ptr(m->keys);
-    char *container_data = data_shared_ptr(m->container);
+    void *keys_data = data_shared_ptr(m->keys);
+    void *container_data = data_shared_ptr(m->container);
     for (; i < m->size; i++)
     {
         if (status_data[i] != m->cur_flag)
             continue;
         key_status *cur_status = status_data + i;
-        char *key = m->keys_type->t_at(keys_data, i);
-        char *val = m->container_type->t_at(container_data, i);
+        void *key = m->keys_type->t_at(keys_data, i);
+        void *val = m->container_type->t_at(container_data, i);
         size_t index = m->keys_type->t_hash(key) % mul_of_2_size;
         size_t offset = 1;
         for (;;)
@@ -221,8 +222,8 @@ int set_hash_map(unordered_map *const m, const void *const key, const void *cons
     size_t i = index;
     size_t offset = 1;
     key_status *status_data = data_shared_ptr(m->status);
-    char *keys_data = data_shared_ptr(m->keys);
-    char *container_data = data_shared_ptr(m->container);
+    void *keys_data = data_shared_ptr(m->keys);
+    void *container_data = data_shared_ptr(m->container);
     for (;;)
     {
         key_status *status = status_data + i;
@@ -254,7 +255,7 @@ static size_t get_index_hash_map(const unordered_map *const m, const void *const
     size_t i = index;
     size_t offset = 1;
     key_status *status_data = data_shared_ptr(m->status);
-    char *keys_data = data_shared_ptr(m->keys);
+    void *keys_data = data_shared_ptr(m->keys);
     for (;;)
     {
         key_status *status = status_data + i;
@@ -286,7 +287,7 @@ int delete_hash_map(unordered_map *const m, const void *const key, void *const v
     size_t index = get_index_hash_map(m, key);
     if (index == m->size)
         return 0;
-    char *container_data = data_shared_ptr(m->container);
+    void *container_data = data_shared_ptr(m->container);
     if (val != NULL)
         m->container_type->t_cpy(val, m->container_type->t_at(container_data, index));
     key_status *status_data = data_shared_ptr(m->status);
