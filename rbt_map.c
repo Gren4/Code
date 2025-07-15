@@ -668,9 +668,9 @@ int get_min_rbt_map(rbt_map *m, const void *const key, void *const val)
     void *keys_data = data_shared_ptr(m->pool.keys);
     void *container_data = data_shared_ptr(m->pool.container);
     if (key != NULL)
-        m->pool.keys_type->t_cpy(m->pool.keys_type->t_at(keys_data, index), key);
+        m->pool.keys_type->t_cpy(key, m->pool.keys_type->t_at(keys_data, index));
     if (val != NULL)
-        m->pool.container_type->t_cpy(m->pool.container_type->t_at(container_data, index), val);
+        m->pool.container_type->t_cpy(val, m->pool.container_type->t_at(container_data, index));
     return 1;
 }
 
@@ -682,8 +682,8 @@ int get_max_rbt_map(rbt_map *m, const void *const key, void *const val)
     void *keys_data = data_shared_ptr(m->pool.keys);
     void *container_data = data_shared_ptr(m->pool.container);
     if (key != NULL)
-        m->pool.keys_type->t_cpy(m->pool.keys_type->t_at(keys_data, index), key);
+        m->pool.keys_type->t_cpy(key, m->pool.keys_type->t_at(keys_data, index));
     if (val != NULL)
-        m->pool.container_type->t_cpy(m->pool.container_type->t_at(container_data, index), val);
+        m->pool.container_type->t_cpy(val, m->pool.container_type->t_at(container_data, index));
     return 1;
 }

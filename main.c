@@ -107,6 +107,12 @@ void map_test(void)
             printf("RBT Map doesn't have key %d\n", key);
     }
 
+    get_min_rbt_map(rbt, &key, &val);
+    printf("Min key and corresponding value of RBT Map: %d %d\n", key, val);
+
+    get_max_rbt_map(rbt, &key, &val);
+    printf("Max key and corresponding value of RBT Map: %d %d\n", key, val);
+
     free_rbt_map(rbt);
 
     return;
