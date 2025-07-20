@@ -27,3 +27,8 @@ extern const type_func *f_ssize_t;
 extern const type_func *f_string_t;
 extern const type_func *f_float;
 extern const type_func *f_double;
+extern const type_func *f_vector;
+extern const type_func *f_dequeue;
+extern const type_func *f_queue;
+extern const type_func *f_hash_map;
+extern const type_func *f_rbt_map;

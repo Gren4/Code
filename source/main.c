@@ -17,6 +17,7 @@ void map_test(void);
 void unordered_map_test(void);
 void queue_test(void);
 void dequeue_test(void);
+
 int main(void)
 {
     map_test();
@@ -30,7 +31,7 @@ int main(void)
 
 void dequeue_test(void)
 {
-    dequeue *dq = create_dequeue(2, f_uint8_t);
+    dequeue dq = create_dequeue(2, f_uint8_t);
 
     uint8_t a = 115;
 
@@ -59,13 +60,13 @@ void dequeue_test(void)
 
 void queue_test(void)
 {
-    queue *q = create_queue(0, f_uint16_t);
+    queue q = create_queue(0, f_uint16_t);
     uint16_t i = 1;
     for (; i < 256; i++)
     {
         push_queue(q, &i);
     }
-    for (; i > 15; i--)
+    for (; i > 5; i--)
     {
         pop_queue(q, 0);
     }
@@ -85,7 +86,7 @@ void queue_test(void)
 #define RBT 512
 void map_test(void)
 {
-    rbt_map *rbt = create_rbt_map(0, f_uint16_t, f_uint16_t);
+    rbt_map rbt = create_rbt_map(0, f_uint16_t, f_uint16_t);
 
     uint16_t key = 0, val = RBT;
 
@@ -120,7 +121,7 @@ void map_test(void)
 
 void unordered_map_test(void)
 {
-    unordered_map *hm = create_hash_map(0, f_uint8_t, f_uint8_t);
+    hash_map hm = create_hash_map(0, f_uint8_t, f_uint8_t);
     uint8_t a = 0;
     uint8_t b = 255;
     for (a = 0; a < 255; a++, b--)
@@ -149,7 +150,7 @@ void vector_test(void)
 {
     size_t i = 0;
     double a = 0.0;
-    vector *b = create_vector(0, f_double);
+    vector b = create_vector(0, f_double);
 
     for (i = 0; i < N; i++)
     {
