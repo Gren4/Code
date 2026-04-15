@@ -250,7 +250,7 @@ static int shrink_hash_map(hash_map_t *const m)
 {
     if (--m->count > m->size >> 3)
         return 1;
-    size_t mul_of_2_size = next_power_of_2(m->count);
+    size_t mul_of_2_size = next_power_of_2(m->size >> 1);
     if (mul_of_2_size <= HASH_MAP_MIN_SIZE)
         return 1;
     size_t i = 0;

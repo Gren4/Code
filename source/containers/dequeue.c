@@ -168,8 +168,8 @@ static int expand_dequeue(dequeue_t *const dq)
     {
         size_t old_count = dq->count - 1;
         size_t start_offset = dq->back + 1;
-        memcpy(dq->type->t_at(new_container, old_count), new_container, start_offset * dq->type->t_size);
-        memcpy(new_container, dq->type->t_at(new_container, start_offset), old_count * dq->type->t_size);
+        memmove(dq->type->t_at(new_container, old_count), new_container, start_offset * dq->type->t_size);
+        memmove(new_container, dq->type->t_at(new_container, start_offset), old_count * dq->type->t_size);
         dq->front = 0;
         dq->back = old_count - 1;
     }
@@ -188,22 +188,22 @@ static int shrink_dequeue(dequeue_t *const dq)
         dq->front = 0;
         dq->back = 0;
     }
-    size_t mul_of_2_size = next_power_of_2(dq->count);
+    size_t mul_of_2_size = next_power_of_2(dq->size >> 1);
     if (mul_of_2_size <= DEQUEUE_MIN_SIZE)
         return 1;
     if (dq->front != 0)
     {
         if (dq->back > dq->front)
         {
-            memcpy(dq->container, dq->type->t_at(dq->container, dq->front), dq->count * dq->type->t_size);
+            memmove(dq->container, dq->type->t_at(dq->container, dq->front), dq->count * dq->type->t_size);
         }
         else
         {
             size_t start_offset = dq->back + 1;
             size_t end_size = dq->count - start_offset;
-            memcpy(dq->type->t_at(dq->container, start_offset), dq->type->t_at(dq->container, dq->front), end_size * dq->type->t_size);
-            memcpy(dq->type->t_at(dq->container, dq->count), dq->container, start_offset * dq->type->t_size);
-            memcpy(dq->container, dq->type->t_at(dq->container, start_offset), dq->count * dq->type->t_size);
+            memmove(dq->type->t_at(dq->container, start_offset), dq->type->t_at(dq->container, dq->front), end_size * dq->type->t_size);
+            memmove(dq->type->t_at(dq->container, dq->count), dq->container, start_offset * dq->type->t_size);
+            memmove(dq->container, dq->type->t_at(dq->container, start_offset), dq->count * dq->type->t_size);
         }
         dq->front = 0;
         dq->back = dq->count - 1;

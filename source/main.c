@@ -7,8 +7,10 @@
 #include "bit_types.h"
 #include "string_type.h"
 #include "shared_ptr.h"
+#include <octree_voxels.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #define N 50
 
@@ -18,15 +20,18 @@ void unordered_map_test(void);
 void queue_test(void);
 void dequeue_test(void);
 
+#define CYC 1000000000
 int main(void)
 {
-    map_test();
+    octree_t ot = octree(4);
+    octree_set(&ot, (point_t){.x = 2, .y = 3, .z = 0});
+//    map_test();
 //    dequeue_test();
 //    queue_test();
 //    unordered_map_test();
 //    vector_test();
-    printf("Done\n");
-    return 1;
+//    printf("Done\n");
+    return 0;
 }
 
 void dequeue_test(void)

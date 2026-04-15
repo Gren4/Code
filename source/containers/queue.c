@@ -123,8 +123,8 @@ static int expand_queue(queue_t *const q)
     {
         size_t old_count = q->count - 1;
         size_t start_size = (old_count + q->offset) % q->size;
-        memcpy(q->type->t_at(new_container, old_count), new_container, start_size * q->type->t_size);
-        memcpy(new_container, q->type->t_at(new_container, q->offset), old_count * q->type->t_size);
+        memmove(q->type->t_at(new_container, old_count), new_container, start_size * q->type->t_size);
+        memmove(new_container, q->type->t_at(new_container, q->offset), old_count * q->type->t_size);
         q->offset = 0;
     }
     memset(q->type->t_at(new_container, q->size), 0, (mul_of_2_size - q->size) * q->type->t_size);
@@ -139,22 +139,22 @@ static int shrink_queue(queue_t *const q)
         return 1;
     if (q->count == 0)
         q->offset = 0;
-    size_t mul_of_2_size = next_power_of_2(q->count);
+    size_t mul_of_2_size = next_power_of_2(q->size >> 1);
     if (mul_of_2_size <= QUEUE_MIN_SIZE)
         return 1;
     if (q->offset != 0)
     {
         if ((q->count + q->offset) < q->size)
         {
-            memcpy(q->container, q->type->t_at(q->container, q->offset), q->count * q->type->t_size);
+            memmove(q->container, q->type->t_at(q->container, q->offset), q->count * q->type->t_size);
         }
         else
         {
             size_t start_offset = (q->count + q->offset) % q->size;
             size_t end_size = q->count - start_offset;
-            memcpy(q->type->t_at(q->container, start_offset), q->type->t_at(q->container, q->offset), end_size * q->type->t_size);
-            memcpy(q->type->t_at(q->container, q->count), q->container, start_offset * q->type->t_size);
-            memcpy(q->container, q->type->t_at(q->container, start_offset), q->count * q->type->t_size);
+            memmove(q->type->t_at(q->container, start_offset), q->type->t_at(q->container, q->offset), end_size * q->type->t_size);
+            memmove(q->type->t_at(q->container, q->count), q->container, start_offset * q->type->t_size);
+            memmove(q->container, q->type->t_at(q->container, start_offset), q->count * q->type->t_size);
         }
         q->offset = 0;
     }

@@ -122,7 +122,7 @@ int insert_vector(vector const ptr, const size_t index, const void *const val)
     if (val == NULL || v->count == SIZE_MAX || index > v->count || expand_vector(v) == 0)
         return 0;
     void *container_val = v->type->t_at(v->container, index);
-    memcpy(v->type->t_at(v->container, index + 1), container_val, (v->count - index - 1) * v->type->t_size);
+    memmove(v->type->t_at(v->container, index + 1), container_val, (v->count - index - 1) * v->type->t_size);
     v->type->t_cpy(container_val, val);
     return 1;
 }
@@ -138,7 +138,7 @@ int delete_vector(vector const ptr, const size_t index, void *const val)
     if (val != NULL)
         v->type->t_cpy(val, container_val);
     v->type->t_free(container_val);
-    memcpy(container_val, v->type->t_at(v->container, index + 1), (v->count - index - 1) * v->type->t_size);
+    memmove(container_val, v->type->t_at(v->container, index + 1), (v->count - index - 1) * v->type->t_size);
     return shrink_vector(v);
 }
 
@@ -220,7 +220,7 @@ static inline int shrink_vector(vector_t *const v)
 {
     if (--v->count > v->size >> 3)
         return 1;
-    size_t mul_of_2_size = next_power_of_2(v->count);
+    size_t mul_of_2_size = next_power_of_2(v->size >> 1);
     if (mul_of_2_size <= VECTOR_MIN_SIZE)
         return 1;
     void *new_container = realloc(v->container, mul_of_2_size * v->type->t_size);

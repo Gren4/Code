@@ -345,7 +345,7 @@ static int shrink_pool(rbt_map_t *const m)
 {
     if (--m->pool.count > m->pool.size >> 3)
         return 1;
-    size_t mul_of_2_size = next_power_of_2(m->pool.count);
+    size_t mul_of_2_size = next_power_of_2(m->pool.size >> 1);
     if (mul_of_2_size <= RBT_MAP_MIN_SIZE)
         return 1;
     size_t i = 1;
