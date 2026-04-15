@@ -23,8 +23,16 @@ void dequeue_test(void);
 #define CYC 1000000000
 int main(void)
 {
-    octree_t ot = octree(4);
-    octree_set(&ot, (point_t){.x = 2, .y = 3, .z = 0});
+    octree_t ot = octree(4, 1);
+    octree_set_voxel(ot, (point_t){.x = 0, .y = 0, .z = 0}, 1);
+    octree_set_voxel(ot, (point_t){.x = 0, .y = 0, .z = 1}, 1);
+    octree_set_voxel(ot, (point_t){.x = 0, .y = 1, .z = 0}, 1);
+    octree_set_voxel(ot, (point_t){.x = 0, .y = 1, .z = 1}, 1);
+    octree_set_voxel(ot, (point_t){.x = 1, .y = 0, .z = 0}, 1);
+    octree_set_voxel(ot, (point_t){.x = 1, .y = 0, .z = 1}, 1);
+    octree_set_voxel(ot, (point_t){.x = 1, .y = 1, .z = 0}, 1);
+    octree_set_voxel(ot, (point_t){.x = 1, .y = 1, .z = 1}, 1);
+    octree_print(ot);
 //    map_test();
 //    dequeue_test();
 //    queue_test();
