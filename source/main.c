@@ -23,30 +23,27 @@ void dequeue_test(void);
 #define CYC 1000000000
 int main(void)
 {
-    octree_t ot = octree(1024, 1);
-    octree_set_voxel(&ot, (point_t){.x = 0, .y = 0, .z = 0}, 1);
+    octree_t ot = octree(4, 1);
+    octree_set_voxel(&ot, (point_t){.x = 3, .y = 3, .z = 3}, (color_t){.b = 3});
+    octree_set_voxel(&ot, (point_t){.x = 2, .y = 3, .z = 0}, (color_t){.b = 1});
+    octree_set_voxel(&ot, (point_t){.x = 3, .y = 3, .z = 0}, (color_t){.b = 1});
+    octree_set_voxel(&ot, (point_t){.x = 2, .y = 2, .z = 0}, (color_t){.b = 1});
+    octree_set_voxel(&ot, (point_t){.x = 3, .y = 2, .z = 0}, (color_t){.b = 1});
+    octree_set_voxel(&ot, (point_t){.x = 2, .y = 3, .z = 1}, (color_t){.b = 1});
+    octree_set_voxel(&ot, (point_t){.x = 3, .y = 3, .z = 1}, (color_t){.b = 1});
+    octree_set_voxel(&ot, (point_t){.x = 2, .y = 2, .z = 1}, (color_t){.b = 1});
+    octree_set_voxel(&ot, (point_t){.x = 0, .y = 0, .z = 0}, (color_t){.b = 2});
+    octree_set_voxel(&ot, (point_t){.x = 3, .y = 2, .z = 1}, (color_t){.b = 1});
+    octree_optimize(&ot);
     octree_print(&ot);
-    octree_set_voxel(&ot, (point_t){.x = 0, .y = 0, .z = 1}, 1);
-    octree_print(&ot);
-    octree_set_voxel(&ot, (point_t){.x = 0, .y = 1, .z = 0}, 1);
-    octree_print(&ot);
-    octree_set_voxel(&ot, (point_t){.x = 0, .y = 1, .z = 1}, 1);
-    octree_print(&ot);
-    octree_set_voxel(&ot, (point_t){.x = 1, .y = 0, .z = 0}, 1);
-    octree_print(&ot);
-    octree_set_voxel(&ot, (point_t){.x = 1, .y = 0, .z = 1}, 1);
-    octree_print(&ot);
-    octree_set_voxel(&ot, (point_t){.x = 1, .y = 1, .z = 0}, 1);
-    octree_print(&ot);
-    octree_set_voxel(&ot, (point_t){.x = 1, .y = 1, .z = 1}, 1);
-    octree_print(&ot);
+    octree_free(&ot);
 //    map_test();
 //    dequeue_test();
 //    queue_test();
 //    unordered_map_test();
 //    vector_test();
-//    printf("Done\n");
-    return 0;
+    printf("Done\n");
+    return 1;
 }
 
 void dequeue_test(void)
