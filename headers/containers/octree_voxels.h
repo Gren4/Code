@@ -1,9 +1,10 @@
 #pragma once
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef union point_t
 {
-    int32_t data[3];
+    int32_t raw[3];
     struct
     {
         int32_t x, y, z;
@@ -19,13 +20,19 @@ typedef union color_t
     };
 } color_t;
 
-#define MASK_EMPTY /**/ 0x00000000U
-#define MASK_LEAF /* */ 0x40000000U
-#define MASK_NODE /* */ 0x80000000U
+typedef struct voxel_t
+{
+    point_t position;
+    color_t color;
+    uint32_t size;
+} voxel_t;
 
-#define MASK_TYPE /* */ 0xC0000000U
-#define MASK_INDEX /**/ 0x3FFFFFFFU
-#define MASK_COLOR /**/ 0x00FFFFFFU
+typedef struct ray_hit_t
+{
+    float distance;
+    voxel_t voxel;
+    bool hit;
+} ray_hit_t;
 
 typedef uint32_t octree_node_t;
 
@@ -41,8 +48,19 @@ typedef struct octree_t
     const uint32_t max_depth;
 } octree_t;
 
+#define POINT(X, Y, Z) \
+    (point_t) { .x = X, .y = Y, .z = Z }
+#define COLOR(R, G, B) \
+    (color_t) { .r = R, .g = G, .b = B }
+#define VOXEL(P, C, S) \
+    (voxel_t) { .position = P, .color = C, .size = S }
+
 octree_t octree(const uint32_t grid_size, const uint32_t min_size);
+void octree_clear(octree_t *const ot);
 void octree_free(octree_t *const ot);
+voxel_t octree_get_voxel(octree_t *const ot, const point_t p);
 void octree_set_voxel(octree_t *const ot, const point_t p, const color_t color);
+void octree_unset_voxel(octree_t *const ot, const point_t p);
 void octree_optimize(octree_t *const ot);
 void octree_print(const octree_t *const ot);
+ray_hit_t octree_ray_cast(const octree_t *const ot, const point_t start, const point_t end, const float max_dist);

@@ -24,24 +24,22 @@ void dequeue_test(void);
 int main(void)
 {
     octree_t ot = octree(4, 1);
-    octree_set_voxel(&ot, (point_t){.x = 3, .y = 3, .z = 3}, (color_t){.b = 3});
-    octree_set_voxel(&ot, (point_t){.x = 2, .y = 3, .z = 0}, (color_t){.b = 1});
-    octree_set_voxel(&ot, (point_t){.x = 3, .y = 3, .z = 0}, (color_t){.b = 1});
-    octree_set_voxel(&ot, (point_t){.x = 2, .y = 2, .z = 0}, (color_t){.b = 1});
-    octree_set_voxel(&ot, (point_t){.x = 3, .y = 2, .z = 0}, (color_t){.b = 1});
-    octree_set_voxel(&ot, (point_t){.x = 2, .y = 3, .z = 1}, (color_t){.b = 1});
-    octree_set_voxel(&ot, (point_t){.x = 3, .y = 3, .z = 1}, (color_t){.b = 1});
-    octree_set_voxel(&ot, (point_t){.x = 2, .y = 2, .z = 1}, (color_t){.b = 1});
-    octree_set_voxel(&ot, (point_t){.x = 0, .y = 0, .z = 0}, (color_t){.b = 2});
-    octree_set_voxel(&ot, (point_t){.x = 3, .y = 2, .z = 1}, (color_t){.b = 1});
-    octree_optimize(&ot);
+    octree_set_voxel(&ot, POINT(1, 1, 1), COLOR(0, 0, 3));
+    octree_set_voxel(&ot, POINT(1, 1, 2), COLOR(0, 0, 3));
+    octree_set_voxel(&ot, POINT(1, 2, 1), COLOR(0, 0, 3));
+    octree_set_voxel(&ot, POINT(1, 2, 2), COLOR(0, 0, 3));
+    octree_set_voxel(&ot, POINT(2, 1, 1), COLOR(0, 0, 3));
+    octree_set_voxel(&ot, POINT(2, 1, 2), COLOR(0, 0, 3));
+    octree_set_voxel(&ot, POINT(2, 2, 1), COLOR(0, 0, 3));
+    octree_set_voxel(&ot, POINT(2, 2, 2), COLOR(0, 0, 3));
     octree_print(&ot);
+    ray_hit_t result = octree_ray_cast(&ot, POINT(0, 0, 3), POINT(3,3,0), 100.0f);
     octree_free(&ot);
-//    map_test();
-//    dequeue_test();
-//    queue_test();
-//    unordered_map_test();
-//    vector_test();
+    //    map_test();
+    //    dequeue_test();
+    //    queue_test();
+    //    unordered_map_test();
+    //    vector_test();
     printf("Done\n");
     return 1;
 }
@@ -63,7 +61,7 @@ void dequeue_test(void)
     }
 
     uint8_t b = 0;
-    while(pop_back_dequeue(dq, &b))
+    while (pop_back_dequeue(dq, &b))
     {
         printf("%d\n", b);
         if (pop_front_dequeue(dq, &b))
@@ -146,7 +144,7 @@ void unordered_map_test(void)
         set_hash_map(hm, &a, &b);
     }
 
-    for (a = 1; a < 255; a+=2, b--)
+    for (a = 1; a < 255; a += 2, b--)
     {
         delete_hash_map(hm, &a, &b);
     }
