@@ -7,7 +7,7 @@
 #include "bit_types.h"
 #include "string_type.h"
 #include "shared_ptr.h"
-#include <octree_voxels.h>
+#include <svo.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -23,18 +23,30 @@ void dequeue_test(void);
 #define CYC 1000000000
 int main(void)
 {
-    octree_t ot = octree(4, 1);
-    octree_set_voxel(&ot, POINT(1, 1, 1), COLOR(0, 0, 3));
-    octree_set_voxel(&ot, POINT(1, 1, 2), COLOR(0, 0, 3));
-    octree_set_voxel(&ot, POINT(1, 2, 1), COLOR(0, 0, 3));
-    octree_set_voxel(&ot, POINT(1, 2, 2), COLOR(0, 0, 3));
-    octree_set_voxel(&ot, POINT(2, 1, 1), COLOR(0, 0, 3));
-    octree_set_voxel(&ot, POINT(2, 1, 2), COLOR(0, 0, 3));
-    octree_set_voxel(&ot, POINT(2, 2, 1), COLOR(0, 0, 3));
-    octree_set_voxel(&ot, POINT(2, 2, 2), COLOR(0, 0, 3));
-    octree_print(&ot);
-    ray_hit_t result = octree_ray_cast(&ot, POINT(0, 0, 3), POINT(3,3,0), 100.0f);
-    octree_free(&ot);
+    svo_t ot = svo(4, 1);
+    svo_set(&ot, POINT(2, 2, 2), COLOR(0, 0, 3, 255));
+    svo_set(&ot, POINT(1, 1, 1), COLOR(0, 0, 3, 255));
+    svo_set(&ot, POINT(1, 1, 2), COLOR(0, 0, 3, 255));
+    svo_set(&ot, POINT(1, 2, 1), COLOR(0, 0, 3, 255));
+    svo_set(&ot, POINT(1, 2, 2), COLOR(0, 0, 3, 255));
+    svo_set(&ot, POINT(2, 1, 1), COLOR(0, 0, 3, 255));
+    svo_set(&ot, POINT(2, 1, 2), COLOR(0, 0, 3, 255));
+    svo_set(&ot, POINT(2, 2, 1), COLOR(0, 0, 3, 255));
+    svo_print(&ot);
+    svo_optimize(&ot);
+    svo_print(&ot);
+    svo_set(&ot, POINT(2, 3, 2), COLOR(0, 0, 3, 255));
+    svo_set(&ot, POINT(2, 2, 3), COLOR(0, 0, 3, 255));
+    svo_set(&ot, POINT(2, 3, 3), COLOR(0, 0, 3, 255));
+    svo_set(&ot, POINT(3, 2, 2), COLOR(0, 0, 3, 255));
+    svo_set(&ot, POINT(3, 3, 2), COLOR(0, 0, 3, 255));
+    svo_set(&ot, POINT(3, 2, 3), COLOR(0, 0, 3, 255));
+    svo_set(&ot, POINT(3, 3, 3), COLOR(0, 0, 3, 255));
+    svo_print(&ot);
+    svo_optimize(&ot);
+    svo_print(&ot);
+    // ray_hit_t result = svo_ray_cast(&ot, POINT(0, 0, 3), POINT(3,3,0), 100.0f);
+    svo_free(&ot);
     //    map_test();
     //    dequeue_test();
     //    queue_test();
